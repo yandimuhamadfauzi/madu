@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Masuk - Madu</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="card">
+    <h1>Madu</h1>
+    {{if .Error}}<p class="err" role="alert">{{.Error}}</p>{{end}}
+    <form method="post" action="/masuk" autocomplete="off">
+      <label for="u">Username</label>
+      <input id="u" name="username" required maxlength="20">
+      <label for="p">Password</label>
+      <input id="p" name="password" type="password" required maxlength="72">
+      <button type="submit">Masuk</button>
+    </form>
+  </main>
+</body>
+</html>

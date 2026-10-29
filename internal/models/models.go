@@ -32,3 +32,11 @@ type Event struct {
 	Blocked    bool
 	IsTest     bool
 }
+
+type Session struct {
+	ID        uint      `gorm:"primaryKey"`
+	UserID    uint      `gorm:"index;not null"`
+	TokenHash string    `gorm:"size:64;uniqueIndex;not null"`
+	ExpiresAt time.Time `gorm:"index"`
+	CreatedAt time.Time
+}

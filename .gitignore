@@ -1,3 +1,7 @@
 .env
 *.log
 /bin/
+*.sql
+*.db
+/data/
+*.csv

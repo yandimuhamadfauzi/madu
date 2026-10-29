@@ -10,6 +10,7 @@ import (
 
 	"github.com/yandimuhamadfauzi/madu/internal/config"
 	"github.com/yandimuhamadfauzi/madu/internal/models"
+	"github.com/yandimuhamadfauzi/madu/internal/services"
 )
 
 func main() {
@@ -22,6 +23,10 @@ func main() {
 	if err := db.AutoMigrate(&models.User{}, &models.Rule{}, &models.Event{}); err != nil {
 		log.Fatal("gagal migrasi: ", err)
 	}
+
+	services.SeedAdmin(db)
+
+	services.SeedAdmin(db)
 
 	r := gin.Default()
 	_ = r.SetTrustedProxies(nil) // lokal: jangan percaya header proxy. Diatur ulang saat deploy

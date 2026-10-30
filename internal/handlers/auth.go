@@ -3,6 +3,8 @@ package handlers
 import (
 	"net/http"
 	"regexp"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -21,21 +23,42 @@ const msgLoginGagal = "Username atau password salah."
 type Auth struct {
 	DB           *gorm.DB
 	SecureCookie bool
+	IPLimit      *services.FailLimiter
+	UserLimit    *services.FailLimiter
 }
 
 func (a *Auth) LoginPage(c *gin.Context) {
 	c.HTML(http.StatusOK, "login.html", gin.H{})
 }
 
+func (a *Auth) tooMany(c *gin.Context, d time.Duration) {
+	c.Header("Retry-After", strconv.Itoa(int(d.Seconds())+1))
+	c.HTML(http.StatusTooManyRequests, "login.html", gin.H{"Error": "Terlalu banyak percobaan. Coba lagi beberapa menit lagi."})
+}
+
 func (a *Auth) Login(c *gin.Context) {
+	ip := c.ClientIP()
+	if d := a.IPLimit.Blocked(ip); d > 0 {
+		a.tooMany(c, d)
+		return
+	}
+
 	username := c.PostForm("username")
 	password := c.PostForm("password")
-	fail := func() {
+	fail := func(countUser bool) {
+		a.IPLimit.Fail(ip)
+		if countUser {
+			a.UserLimit.Fail(username)
+		}
 		c.HTML(http.StatusUnauthorized, "login.html", gin.H{"Error": msgLoginGagal})
 	}
 
 	if !usernameRe.MatchString(username) || len(password) == 0 || len(password) > 72 {
-		fail()
+		fail(false)
+		return
+	}
+	if d := a.UserLimit.Blocked(username); d > 0 {
+		a.tooMany(c, d)
 		return
 	}
 
@@ -47,10 +70,11 @@ func (a *Auth) Login(c *gin.Context) {
 	}
 	ok := services.CheckPassword(hash, password)
 	if err != nil || !ok {
-		fail()
+		fail(true)
 		return
 	}
 
+	a.UserLimit.Reset(username)
 	token, err := services.CreateSession(a.DB, u.ID)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "terjadi kesalahan")

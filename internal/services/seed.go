@@ -12,30 +12,34 @@ import (
 
 var usernameRe = regexp.MustCompile(`^[A-Za-z0-9]{3,20}$`)
 
-// SeedAdmin membuat admin pertama dari environment variable, hanya jika belum ada user.
-func SeedAdmin(db *gorm.DB) {
-	var n int64
-	db.Model(&models.User{}).Count(&n)
-	if n > 0 {
-		return
-	}
-	u, p := os.Getenv("ADMIN_USERNAME"), os.Getenv("ADMIN_PASSWORD")
+// ensureUser membuat user dari environment variable bila username belum ada.
+func ensureUser(db *gorm.DB, uEnv, pEnv, role string) {
+	u, p := os.Getenv(uEnv), os.Getenv(pEnv)
 	if u == "" || p == "" {
-		log.Println("belum ada user: isi ADMIN_USERNAME dan ADMIN_PASSWORD di .env untuk membuat admin pertama")
 		return
 	}
 	if !usernameRe.MatchString(u) {
-		log.Fatal("ADMIN_USERNAME harus 3-20 huruf atau angka")
+		log.Fatal(uEnv, " harus 3-20 huruf atau angka")
 	}
 	if err := ValidatePassword(p); err != nil {
-		log.Fatal("ADMIN_PASSWORD ditolak: ", err)
+		log.Fatal(pEnv, " ditolak: ", err)
+	}
+	var n int64
+	db.Model(&models.User{}).Where("username = ?", u).Count(&n)
+	if n > 0 {
+		return
 	}
 	h, err := HashPassword(p)
 	if err != nil {
 		log.Fatal("gagal membuat hash: ", err)
 	}
-	if err := db.Create(&models.User{Username: u, PasswordHash: h, Role: "admin"}).Error; err != nil {
-		log.Fatal("gagal membuat admin: ", err)
+	if err := db.Create(&models.User{Username: u, PasswordHash: h, Role: role}).Error; err != nil {
+		log.Fatal("gagal membuat user: ", err)
 	}
-	log.Println("admin pertama dibuat:", u)
+	log.Println("user dibuat:", u, "peran:", role)
+}
+
+func SeedUsers(db *gorm.DB) {
+	ensureUser(db, "ADMIN_USERNAME", "ADMIN_PASSWORD", "admin")
+	ensureUser(db, "ANALIS_USERNAME", "ANALIS_PASSWORD", "analis")
 }

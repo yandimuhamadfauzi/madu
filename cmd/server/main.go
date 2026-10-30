@@ -24,10 +24,11 @@ func main() {
 	if err != nil {
 		log.Fatal("gagal konek database: ", err)
 	}
-	if err := db.AutoMigrate(&models.User{}, &models.Rule{}, &models.Event{}, &models.Session{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.Rule{}, &models.Event{}, &models.Session{}, &models.Blocklist{}); err != nil {
 		log.Fatal("gagal migrasi: ", err)
 	}
 	services.SeedUsers(db)
+	services.SeedRules(db)
 
 	r := gin.Default()
 	_ = r.SetTrustedProxies(nil) // lokal: jangan percaya header proxy. Diatur ulang saat deploy
@@ -40,7 +41,9 @@ func main() {
 		IPLimit:      services.NewFailLimiter(10, 15*time.Minute, 15*time.Minute),
 		UserLimit:    services.NewFailLimiter(5, 15*time.Minute, 15*time.Minute),
 	}
+	hp := &handlers.Honeypot{DB: db, Limiter: services.NewFailLimiter(60, time.Minute, 10*time.Minute)}
 
+	r.GET("/", func(c *gin.Context) { c.Redirect(http.StatusSeeOther, "/masuk") })
 	r.GET("/healthz", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
@@ -51,6 +54,8 @@ func main() {
 	requireAuth := middleware.RequireAuth(db)
 	r.GET("/panel", requireAuth, handlers.Panel)
 	r.GET("/panel/admin", requireAuth, middleware.RequireRole("admin"), handlers.AdminArea)
+
+	r.NoRoute(hp.Handle) // semua jalur yang tidak ada di aplikasi asli = umpan
 
 	log.Fatal(r.Run(":" + cfg.Port))
 }

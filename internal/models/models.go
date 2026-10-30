@@ -40,3 +40,10 @@ type Session struct {
 	ExpiresAt time.Time `gorm:"index"`
 	CreatedAt time.Time
 }
+
+type Blocklist struct {
+	ID        uint   `gorm:"primaryKey"`
+	IP        string `gorm:"size:45;uniqueIndex;not null"`
+	Reason    string `gorm:"size:100"`
+	CreatedAt time.Time
+}

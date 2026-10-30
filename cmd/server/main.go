@@ -44,7 +44,12 @@ func main() {
 	}()
 
 	r := gin.Default()
-	_ = r.SetTrustedProxies(nil) // lokal: jangan percaya header proxy. Diatur ulang saat deploy
+	clientIPHeader := os.Getenv("CLIENT_IP_HEADER") // kosong = pakai alamat koneksi langsung
+	if clientIPHeader != "" {
+		r.TrustedPlatform = clientIPHeader // aman hanya jika platform hosting menimpa header ini
+	}
+	_ = r.SetTrustedProxies(nil)
+	r.Use(middleware.SanitizeClientIP(clientIPHeader))
 	r.Use(middleware.SecurityHeaders(os.Getenv("COOKIE_SECURE") != "false"))
 	r.LoadHTMLGlob("web/templates/*.html")
 	r.Static("/static", "./web/static")

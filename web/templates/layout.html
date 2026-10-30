@@ -1,0 +1,16 @@
+{{define "head"}}<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Title}} - Madu</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>{{end}}
+
+{{define "nav"}}<header class="nav">
+  <strong>Madu</strong>
+  <a href="/panel">Dashboard</a>
+  <a href="/panel/log">Log serangan</a>
+  <span class="who">{{.Username}} ({{.Role}})</span>
+  <form method="post" action="/keluar"><button type="submit" class="s">Keluar</button></form>
+</header>{{end}}

@@ -1,0 +1,41 @@
+{{template "head" .}}
+<body class="app">
+<main>
+  {{template "nav" .}}
+  <h1>Log serangan</h1>
+
+  <form method="get" action="/panel/log" class="filter">
+    <label for="q">Cari jalur, IP, atau user-agent</label>
+    <input id="q" name="q" maxlength="60" value="{{.Q}}">
+    <label for="jenis">Jenis</label>
+    <select id="jenis" name="jenis">
+      <option value="">Semua</option>
+      {{range .Types}}<option value="{{.}}" {{if eq . $.Typ}}selected{{end}}>{{.}}</option>{{end}}
+    </select>
+    <label><input type="checkbox" name="uji" value="1" {{if .WithTest}}checked{{end}}> Tampilkan data uji</label>
+    <button type="submit">Terapkan</button>
+  </form>
+
+  <p class="note">{{.Total}} entri ditemukan.</p>
+  <div class="tw">
+  <table>
+    <tr><th>Waktu</th><th>IP</th><th>Permintaan</th><th>Jenis</th><th>Tingkat</th><th>Uji</th></tr>
+    {{range .Events}}
+    <tr>
+      <td>{{.CreatedAt.Format "02 Jan 15:04:05"}}</td>
+      <td><code>{{.IP}}</code></td>
+      <td><code>{{.Method}} {{.Path}}</code><br><small>{{.UserAgent}}</small></td>
+      <td>{{.AttackType}}</td>
+      <td>{{if eq .Severity 3}}Tinggi{{else if eq .Severity 2}}Sedang{{else}}Rendah{{end}}</td>
+      <td>{{if .IsTest}}ya{{end}}</td>
+    </tr>
+    {{else}}<tr><td colspan="6">Tidak ada data yang cocok.</td></tr>{{end}}
+  </table>
+  </div>
+  <p>
+    {{if .Prev}}<a href="{{.Prev}}">&larr; Sebelumnya</a>{{end}}
+    {{if .Next}}<a href="{{.Next}}">Berikutnya &rarr;</a>{{end}}
+  </p>
+</main>
+</body>
+</html>

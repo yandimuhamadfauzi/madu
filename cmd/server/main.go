@@ -52,7 +52,9 @@ func main() {
 	r.POST("/keluar", auth.Logout)
 
 	requireAuth := middleware.RequireAuth(db)
-	r.GET("/panel", requireAuth, handlers.Panel)
+	dash := &handlers.Dashboard{DB: db}
+	r.GET("/panel", requireAuth, dash.Index)
+	r.GET("/panel/log", requireAuth, dash.Logs)
 	r.GET("/panel/admin", requireAuth, middleware.RequireRole("admin"), handlers.AdminArea)
 
 	r.NoRoute(hp.Handle) // semua jalur yang tidak ada di aplikasi asli = umpan

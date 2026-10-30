@@ -4,3 +4,20 @@ label{display:block;font-size:14px;color:#59607a;margin-top:10px}
 input{width:100%;padding:8px 10px;border:1px solid #dadfe9;border-radius:8px;font:inherit;margin-top:4px}
 button{margin-top:16px;padding:8px 16px;border:0;border-radius:8px;background:#263a5c;color:#fff;font:inherit;cursor:pointer}
 .err{background:#fde8e6;color:#b3261e;padding:8px 10px;border-radius:8px}
+body.app{display:block;min-height:0;padding:16px}
+.app main{max-width:960px;margin:0 auto}
+.nav{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid #dadfe9}
+.nav a{color:#263a5c}.nav form{margin-left:auto}.nav button{margin:0}
+.who{color:#59607a;font-size:14px}
+.note{color:#59607a;font-size:14px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin:12px 0}
+.grid2{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.box{background:#fff;border:1px solid #dadfe9;border-radius:10px;padding:14px;margin:12px 0}
+.grid .box{margin:0;border-top:4px solid #e6a50f}.box b{display:block;font-size:26px}
+progress{width:100%;height:10px;margin-bottom:8px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+td,th{text-align:left;padding:6px;border-bottom:1px solid #dadfe9;vertical-align:top}
+code{font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:break-all}
+.filter{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
+.filter label{margin:0}.filter input[type=checkbox]{width:auto}
+button.s{background:transparent;color:#263a5c;border:1px solid #263a5c}

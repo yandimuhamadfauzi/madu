@@ -1,0 +1,47 @@
+{{template "head" .}}
+<body class="app">
+<main>
+  {{template "nav" .}}
+  <h1>Dashboard</h1>
+  {{if .WithTest}}
+    <p class="note">Menampilkan data uji dan data nyata. <a href="/panel">Sembunyikan data uji</a></p>
+  {{else}}
+    <p class="note">Data uji (dari localhost) disembunyikan. <a href="/panel?uji=1">Tampilkan data uji</a></p>
+  {{end}}
+
+  <section class="grid">
+    <div class="box"><small>Total serangan</small><b>{{.S.Total}}</b></div>
+    <div class="box"><small>IP unik</small><b>{{.S.UniqueIPs}}</b></div>
+    <div class="box"><small>Tingkat tinggi</small><b>{{.S.High}}</b></div>
+    <div class="box"><small>Dari IP terblokir</small><b>{{.S.Blocked}}</b></div>
+  </section>
+
+  <section class="box">
+    <h2>Jenis serangan</h2>
+    {{range .S.ByType}}
+      <div>{{.Label}}: <strong>{{.N}}</strong></div>
+      <progress value="{{.N}}" max="{{$.S.MaxType}}"></progress>
+    {{else}}<p>Belum ada data.</p>{{end}}
+  </section>
+
+  <section class="box">
+    <h2>Serangan per jam (24 jam terakhir)</h2>
+    {{range .S.ByHour}}
+      <div>{{.Label}}: <strong>{{.N}}</strong></div>
+      <progress value="{{.N}}" max="{{$.S.MaxHour}}"></progress>
+    {{else}}<p>Belum ada data.</p>{{end}}
+  </section>
+
+  <section class="grid2">
+    <div class="box">
+      <h2>Jalur paling sering</h2>
+      {{range .S.TopPaths}}<p><code>{{.Label}}</code> <strong>{{.N}}</strong></p>{{else}}<p>Belum ada data.</p>{{end}}
+    </div>
+    <div class="box">
+      <h2>IP paling aktif</h2>
+      {{range .S.TopIPs}}<p><code>{{.Label}}</code> <strong>{{.N}}</strong></p>{{else}}<p>Belum ada data.</p>{{end}}
+    </div>
+  </section>
+</main>
+</body>
+</html>

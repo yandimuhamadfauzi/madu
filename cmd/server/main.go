@@ -39,6 +39,7 @@ func main() {
 
 	r := gin.Default()
 	_ = r.SetTrustedProxies(nil) // lokal: jangan percaya header proxy. Diatur ulang saat deploy
+	r.Use(middleware.SecurityHeaders(os.Getenv("COOKIE_SECURE") != "false"))
 	r.LoadHTMLGlob("web/templates/*.html")
 	r.Static("/static", "./web/static")
 
@@ -67,6 +68,7 @@ func main() {
 	r.POST("/keluar", requireAuth, csrf, auth.Logout)
 	r.GET("/panel", requireAuth, dash.Index)
 	r.GET("/panel/log", requireAuth, dash.Logs)
+	r.GET("/panel/log.csv", requireAuth, (&handlers.Export{DB: db}).CSV)
 	r.GET("/panel/admin", requireAuth, admin, handlers.AdminArea)
 
 	r.GET("/panel/aturan", requireAuth, rules.List)

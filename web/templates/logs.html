@@ -16,7 +16,7 @@
     <button type="submit">Terapkan</button>
   </form>
 
-  <p class="note">{{.Total}} entri ditemukan.</p>
+  <p class="note">{{.Total}} entri ditemukan. <a href="/panel/log.csv{{if .WithTest}}?uji=1{{end}}">Ekspor CSV</a></p>
   <div class="tw">
   <table>
     <tr><th>Waktu</th><th>IP</th><th>Permintaan</th><th>Jenis</th><th>Tingkat</th><th>Uji</th></tr>

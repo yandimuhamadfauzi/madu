@@ -1,0 +1,58 @@
+{{template "head" .}}
+<body class="app">
+<main>
+  {{template "nav" .}}
+  <h1>Aturan jebakan</h1>
+  {{if .Error}}<p class="err" role="alert">{{.Error}}</p>{{end}}
+
+  {{if eq .Role "admin"}}
+  <section class="box">
+    <h2>{{if .Edit}}Ubah aturan{{else}}Tambah aturan{{end}}</h2>
+    <form method="post" action="{{if .Edit}}/panel/aturan/{{.Edit.ID}}{{else}}/panel/aturan{{end}}" autocomplete="off">
+      <input type="hidden" name="csrf" value="{{.CSRF}}">
+      <label for="nama">Nama</label>
+      <input id="nama" name="nama" required minlength="3" maxlength="40" value="{{if .Edit}}{{.Edit.Name}}{{end}}">
+      <label for="pola">Jika permintaan memuat</label>
+      <input id="pola" name="pola" required minlength="2" maxlength="40" value="{{if .Edit}}{{.Edit.Pattern}}{{end}}">
+      <label for="jenis">Jenis</label>
+      <select id="jenis" name="jenis">
+        {{range .Types}}<option {{if and $.Edit (eq . $.Edit.AttackType)}}selected{{end}}>{{.}}</option>{{end}}
+      </select>
+      <label for="tingkat">Tingkat</label>
+      <select id="tingkat" name="tingkat">
+        <option value="1" {{if and $.Edit (eq $.Edit.Severity 1)}}selected{{end}}>Rendah</option>
+        <option value="2" {{if or (not $.Edit) (eq $.Edit.Severity 2)}}selected{{end}}>Sedang</option>
+        <option value="3" {{if and $.Edit (eq $.Edit.Severity 3)}}selected{{end}}>Tinggi</option>
+      </select>
+      <button type="submit">Simpan</button>
+      {{if .Edit}}<a href="/panel/aturan">Batal</a>{{end}}
+    </form>
+  </section>
+  {{else}}
+  <p class="note">Peran analis hanya dapat melihat aturan.</p>
+  {{end}}
+
+  <div class="tw">
+  <table>
+    <tr><th>Nama</th><th>Pola</th><th>Jenis</th><th>Tingkat</th><th>Aktif</th>{{if eq .Role "admin"}}<th></th>{{end}}</tr>
+    {{range .Rules}}
+    <tr>
+      <td>{{.Name}}</td>
+      <td><code>{{.Pattern}}</code></td>
+      <td>{{.AttackType}}</td>
+      <td>{{if eq .Severity 3}}Tinggi{{else if eq .Severity 2}}Sedang{{else}}Rendah{{end}}</td>
+      <td>{{if .Active}}Ya{{else}}Tidak{{end}}</td>
+      {{if eq $.Role "admin"}}
+      <td class="act">
+        <a href="/panel/aturan?ubah={{.ID}}">Ubah</a>
+        <form method="post" action="/panel/aturan/{{.ID}}/aktif"><input type="hidden" name="csrf" value="{{$.CSRF}}"><button type="submit" class="s">{{if .Active}}Nonaktifkan{{else}}Aktifkan{{end}}</button></form>
+        <form method="post" action="/panel/aturan/{{.ID}}/hapus"><input type="hidden" name="csrf" value="{{$.CSRF}}"><button type="submit" class="d">Hapus</button></form>
+      </td>
+      {{end}}
+    </tr>
+    {{end}}
+  </table>
+  </div>
+</main>
+</body>
+</html>

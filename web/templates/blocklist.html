@@ -1,0 +1,42 @@
+{{template "head" .}}
+<body class="app">
+<main>
+  {{template "nav" .}}
+  <h1>Blocklist</h1>
+  <p class="note">IP di daftar ini mendapat respons 403 pada jalur jebakan. Aplikasi asli tidak terpengaruh.</p>
+  {{if .Error}}<p class="err" role="alert">{{.Error}}</p>{{end}}
+
+  {{if eq .Role "admin"}}
+  <section class="box">
+    <h2>Tambah IP</h2>
+    <form method="post" action="/panel/blokir" autocomplete="off">
+      <input type="hidden" name="csrf" value="{{.CSRF}}">
+      <label for="ip">Alamat IP</label>
+      <input id="ip" name="ip" required maxlength="45">
+      <label for="alasan">Alasan (opsional)</label>
+      <input id="alasan" name="alasan" maxlength="100">
+      <button type="submit">Blokir</button>
+    </form>
+  </section>
+  {{else}}
+  <p class="note">Peran analis hanya dapat melihat daftar.</p>
+  {{end}}
+
+  <div class="tw">
+  <table>
+    <tr><th>IP</th><th>Alasan</th><th>Dibuat</th>{{if eq .Role "admin"}}<th></th>{{end}}</tr>
+    {{range .Items}}
+    <tr>
+      <td><code>{{.IP}}</code></td>
+      <td>{{.Reason}}</td>
+      <td>{{.CreatedAt.Format "02 Jan 2006 15:04"}}</td>
+      {{if eq $.Role "admin"}}
+      <td class="act"><form method="post" action="/panel/blokir/{{.ID}}/hapus"><input type="hidden" name="csrf" value="{{$.CSRF}}"><button type="submit" class="d">Hapus</button></form></td>
+      {{end}}
+    </tr>
+    {{else}}<tr><td colspan="4">Belum ada IP yang diblokir.</td></tr>{{end}}
+  </table>
+  </div>
+</main>
+</body>
+</html>

@@ -21,3 +21,7 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:break-al
 .filter{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
 .filter label{margin:0}.filter input[type=checkbox]{width:auto}
 button.s{background:transparent;color:#263a5c;border:1px solid #263a5c}
+select{padding:8px 10px;border:1px solid #dadfe9;border-radius:8px;font:inherit;margin-top:4px;width:100%;background:#fff}
+button.d{background:#b3261e;color:#fff}
+.act form{display:inline}.act button{margin:0 4px;padding:4px 10px;font-size:13px}.act a{margin-right:6px}
+.box form button{margin-right:10px}

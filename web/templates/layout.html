@@ -11,6 +11,8 @@
   <strong>Madu</strong>
   <a href="/panel">Dashboard</a>
   <a href="/panel/log">Log serangan</a>
+  <a href="/panel/aturan">Aturan</a>
+  <a href="/panel/blokir">Blokir</a>
   <span class="who">{{.Username}} ({{.Role}})</span>
-  <form method="post" action="/keluar"><button type="submit" class="s">Keluar</button></form>
+  <form method="post" action="/keluar"><input type="hidden" name="csrf" value="{{.CSRF}}"><button type="submit" class="s">Keluar</button></form>
 </header>{{end}}

@@ -37,6 +37,7 @@ type Session struct {
 	ID        uint      `gorm:"primaryKey"`
 	UserID    uint      `gorm:"index;not null"`
 	TokenHash string    `gorm:"size:64;uniqueIndex;not null"`
+	CSRFToken string    `gorm:"size:64;not null;default:''"`
 	ExpiresAt time.Time `gorm:"index"`
 	CreatedAt time.Time
 }

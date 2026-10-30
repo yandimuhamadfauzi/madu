@@ -25,7 +25,7 @@ func (d *Dashboard) Index(c *gin.Context) {
 	u := c.MustGet("user").(*models.User)
 	withTest := c.Query("uji") == "1"
 	c.HTML(http.StatusOK, "dashboard.html", gin.H{
-		"Title": "Dashboard", "Username": u.Username, "Role": u.Role,
+		"Title": "Dashboard", "CSRF": c.GetString("csrf"), "Username": u.Username, "Role": u.Role,
 		"S": services.GetStats(d.DB, withTest), "WithTest": withTest,
 	})
 }
@@ -92,7 +92,7 @@ func (d *Dashboard) Logs(c *gin.Context) {
 	}
 
 	data := gin.H{
-		"Title": "Log serangan", "Username": u.Username, "Role": u.Role,
+		"Title": "Log serangan", "CSRF": c.GetString("csrf"), "Username": u.Username, "Role": u.Role,
 		"Events": events, "Total": total, "Types": AttackTypes,
 		"Typ": typ, "Q": search, "WithTest": withTest, "Page": page,
 	}

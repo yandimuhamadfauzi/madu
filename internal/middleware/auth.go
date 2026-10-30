@@ -17,13 +17,14 @@ func RequireAuth(db *gorm.DB) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		u, err := services.UserFromToken(db, t)
+		u, s, err := services.SessionFromToken(db, t)
 		if err != nil {
 			c.Redirect(http.StatusSeeOther, "/masuk")
 			c.Abort()
 			return
 		}
 		c.Set("user", u)
+		c.Set("csrf", s.CSRFToken)
 		c.Next()
 	}
 }

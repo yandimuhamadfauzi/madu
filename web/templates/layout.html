@@ -13,6 +13,7 @@
   <a href="/panel/log">Log serangan</a>
   <a href="/panel/aturan">Aturan</a>
   <a href="/panel/blokir">Blokir</a>
+  {{if eq .Role "admin"}}<a href="/panel/audit">Audit</a>{{end}}
   <span class="who">{{.Username}} ({{.Role}})</span>
   <form method="post" action="/keluar"><input type="hidden" name="csrf" value="{{.CSRF}}"><button type="submit" class="s">Keluar</button></form>
 </header>{{end}}

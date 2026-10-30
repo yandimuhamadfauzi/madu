@@ -48,3 +48,13 @@ type Blocklist struct {
 	Reason    string `gorm:"size:100"`
 	CreatedAt time.Time
 }
+
+type AuditLog struct {
+	ID        uint      `gorm:"primaryKey"`
+	CreatedAt time.Time `gorm:"index"`
+	Actor     string    `gorm:"size:20"`
+	Action    string    `gorm:"size:60"`
+	Detail    string    `gorm:"size:200"`
+	IP        string    `gorm:"size:45"`
+	Status    int
+}

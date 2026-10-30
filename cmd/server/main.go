@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -24,15 +25,20 @@ func main() {
 	if err != nil {
 		log.Fatal("gagal konek database: ", err)
 	}
-	if err := db.AutoMigrate(&models.User{}, &models.Rule{}, &models.Event{}, &models.Session{}, &models.Blocklist{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.Rule{}, &models.Event{}, &models.Session{}, &models.Blocklist{}, &models.AuditLog{}); err != nil {
 		log.Fatal("gagal migrasi: ", err)
 	}
 	services.SeedUsers(db)
 	services.SeedRules(db)
 
-	go func() { // bersihkan sesi kedaluwarsa tiap jam
+	retention := 90
+	if v, err := strconv.Atoi(os.Getenv("EVENT_RETENTION_DAYS")); err == nil && v >= 1 {
+		retention = v
+	}
+	go func() { // tiap jam: bersihkan sesi kedaluwarsa dan log yang melewati masa simpan
 		for {
 			services.PurgeExpiredSessions(db)
+			services.PurgeOldEvents(db, retention)
 			time.Sleep(time.Hour)
 		}
 	}()
@@ -53,33 +59,37 @@ func main() {
 	dash := &handlers.Dashboard{DB: db}
 	rules := &handlers.Rules{DB: db}
 	blocks := &handlers.Blocks{DB: db}
+	export := &handlers.Export{DB: db}
+	audit := &handlers.Audit{DB: db}
 
 	r.GET("/", func(c *gin.Context) { c.Redirect(http.StatusSeeOther, "/masuk") })
-	r.GET("/healthz", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
-	})
+	r.HEAD("/", func(c *gin.Context) { c.Status(http.StatusSeeOther) }) // HEAD yang sah tidak dianggap serangan
+	r.GET("/healthz", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"status": "ok"}) })
+	r.HEAD("/healthz", func(c *gin.Context) { c.Status(http.StatusOK) })
 	r.GET("/masuk", auth.LoginPage)
-	r.POST("/masuk", auth.Login)
+	r.HEAD("/masuk", func(c *gin.Context) { c.Status(http.StatusOK) })
+	r.POST("/masuk", middleware.AuditLogin(db), auth.Login)
 
 	requireAuth := middleware.RequireAuth(db)
 	csrf := middleware.RequireCSRF()
 	admin := middleware.RequireRole("admin")
 
-	r.POST("/keluar", requireAuth, csrf, auth.Logout)
+	r.POST("/keluar", requireAuth, middleware.Audit(db, "logout"), csrf, auth.Logout)
 	r.GET("/panel", requireAuth, dash.Index)
 	r.GET("/panel/log", requireAuth, dash.Logs)
-	r.GET("/panel/log.csv", requireAuth, (&handlers.Export{DB: db}).CSV)
+	r.GET("/panel/log.csv", requireAuth, export.CSV)
 	r.GET("/panel/admin", requireAuth, admin, handlers.AdminArea)
+	r.GET("/panel/audit", requireAuth, admin, audit.List)
 
 	r.GET("/panel/aturan", requireAuth, rules.List)
-	r.POST("/panel/aturan", requireAuth, admin, csrf, rules.Create)
-	r.POST("/panel/aturan/:id", requireAuth, admin, csrf, rules.Update)
-	r.POST("/panel/aturan/:id/aktif", requireAuth, admin, csrf, rules.Toggle)
-	r.POST("/panel/aturan/:id/hapus", requireAuth, admin, csrf, rules.Delete)
+	r.POST("/panel/aturan", requireAuth, middleware.Audit(db, "aturan.tambah"), admin, csrf, rules.Create)
+	r.POST("/panel/aturan/:id", requireAuth, middleware.Audit(db, "aturan.ubah"), admin, csrf, rules.Update)
+	r.POST("/panel/aturan/:id/aktif", requireAuth, middleware.Audit(db, "aturan.aktif"), admin, csrf, rules.Toggle)
+	r.POST("/panel/aturan/:id/hapus", requireAuth, middleware.Audit(db, "aturan.hapus"), admin, csrf, rules.Delete)
 
 	r.GET("/panel/blokir", requireAuth, blocks.List)
-	r.POST("/panel/blokir", requireAuth, admin, csrf, blocks.Add)
-	r.POST("/panel/blokir/:id/hapus", requireAuth, admin, csrf, blocks.Delete)
+	r.POST("/panel/blokir", requireAuth, middleware.Audit(db, "blokir.tambah"), admin, csrf, blocks.Add)
+	r.POST("/panel/blokir/:id/hapus", requireAuth, middleware.Audit(db, "blokir.hapus"), admin, csrf, blocks.Delete)
 
 	r.NoRoute(hp.Handle) // semua jalur yang tidak ada di aplikasi asli = umpan
 

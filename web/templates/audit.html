@@ -1,0 +1,24 @@
+{{template "head" .}}
+<body class="app">
+<main>
+  {{template "nav" .}}
+  <h1>Audit log</h1>
+  <p class="note">100 aktivitas terakhir. Isi form dan password tidak pernah dicatat.</p>
+  <div class="tw">
+  <table>
+    <tr><th>Waktu</th><th>Pelaku</th><th>Aksi</th><th>Detail</th><th>IP</th><th>Status</th></tr>
+    {{range .Items}}
+    <tr>
+      <td>{{.CreatedAt.Format "02 Jan 15:04:05"}}</td>
+      <td>{{.Actor}}</td>
+      <td>{{.Action}}</td>
+      <td><code>{{.Detail}}</code></td>
+      <td><code>{{.IP}}</code></td>
+      <td>{{.Status}}</td>
+    </tr>
+    {{else}}<tr><td colspan="6">Belum ada aktivitas.</td></tr>{{end}}
+  </table>
+  </div>
+</main>
+</body>
+</html>

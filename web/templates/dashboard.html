@@ -1,7 +1,7 @@
 {{template "head" .}}
-<body class="app">
-<main>
-  {{template "nav" .}}
+<body>
+{{template "nav" .}}
+<main class="wrap">
   <h1>Dashboard</h1>
   {{if .WithTest}}
     <p class="note">Menampilkan data uji dan data nyata. <a href="/panel">Sembunyikan data uji</a></p>
@@ -10,36 +10,36 @@
   {{end}}
 
   <section class="grid">
-    <div class="box"><small>Total serangan</small><b>{{.S.Total}}</b></div>
-    <div class="box"><small>IP unik</small><b>{{.S.UniqueIPs}}</b></div>
-    <div class="box"><small>Tingkat tinggi</small><b>{{.S.High}}</b></div>
-    <div class="box"><small>Dari IP terblokir</small><b>{{.S.Blocked}}</b></div>
+    <div class="stat"><small>Total serangan</small><b>{{.S.Total}}</b></div>
+    <div class="stat"><small>IP unik</small><b>{{.S.UniqueIPs}}</b></div>
+    <div class="stat hi"><small>Tingkat tinggi</small><b>{{.S.High}}</b></div>
+    <div class="stat"><small>Dari IP terblokir</small><b>{{.S.Blocked}}</b></div>
+  </section>
+
+  <section class="box">
+    <h2>Serangan per jam (24 jam terakhir)</h2>
+    <div class="chart">
+      {{range .S.ByHour}}<div class="col"><div class="track"><span class="colbar h{{.Pct}}" title="{{.N}} serangan"></span></div><small>{{.Label}}</small></div>
+      {{else}}<p class="note">Belum ada data.</p>{{end}}
+    </div>
   </section>
 
   <section class="box">
     <h2>Jenis serangan</h2>
     {{range .S.ByType}}
-      <div>{{.Label}}: <strong>{{.N}}</strong></div>
-      <progress value="{{.N}}" max="{{$.S.MaxType}}"></progress>
-    {{else}}<p>Belum ada data.</p>{{end}}
+      <div class="row"><span>{{.Label}}</span><strong>{{.N}}</strong></div>
+      <div class="bar"><i class="w{{.Pct}}"></i></div>
+    {{else}}<p class="note">Belum ada data.</p>{{end}}
   </section>
 
-  <section class="box">
-    <h2>Serangan per jam (24 jam terakhir)</h2>
-    {{range .S.ByHour}}
-      <div>{{.Label}}: <strong>{{.N}}</strong></div>
-      <progress value="{{.N}}" max="{{$.S.MaxHour}}"></progress>
-    {{else}}<p>Belum ada data.</p>{{end}}
-  </section>
-
-  <section class="grid2">
+  <section class="cols">
     <div class="box">
       <h2>Jalur paling sering</h2>
-      {{range .S.TopPaths}}<p><code>{{.Label}}</code> <strong>{{.N}}</strong></p>{{else}}<p>Belum ada data.</p>{{end}}
+      {{range .S.TopPaths}}<div class="row"><code>{{.Label}}</code><strong>{{.N}}</strong></div>{{else}}<p class="note">Belum ada data.</p>{{end}}
     </div>
     <div class="box">
       <h2>IP paling aktif</h2>
-      {{range .S.TopIPs}}<p><code>{{.Label}}</code> <strong>{{.N}}</strong></p>{{else}}<p>Belum ada data.</p>{{end}}
+      {{range .S.TopIPs}}<div class="row"><code>{{.Label}}</code><strong>{{.N}}</strong></div>{{else}}<p class="note">Belum ada data.</p>{{end}}
     </div>
   </section>
 </main>

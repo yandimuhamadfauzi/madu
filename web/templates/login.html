@@ -4,11 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Masuk - Madu</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
+<body class="login">
   <main class="card">
-    <h1>Madu</h1>
+    <div class="logo">{{template "logo"}} Madu</div>
+    <p class="sub">Honeypot dashboard</p>
     {{if .Error}}<p class="err" role="alert">{{.Error}}</p>{{end}}
     <form method="post" action="/masuk" autocomplete="off">
       <label for="u">Username</label>

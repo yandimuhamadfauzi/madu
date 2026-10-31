@@ -4,16 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{.Title}} - Madu</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/style.css">
 </head>{{end}}
 
-{{define "nav"}}<header class="nav">
-  <strong>Madu</strong>
-  <a href="/panel">Dashboard</a>
-  <a href="/panel/log">Log serangan</a>
-  <a href="/panel/aturan">Aturan</a>
-  <a href="/panel/blokir">Blokir</a>
-  {{if eq .Role "admin"}}<a href="/panel/audit">Audit</a>{{end}}
-  <span class="who">{{.Username}} ({{.Role}})</span>
-  <form method="post" action="/keluar"><input type="hidden" name="csrf" value="{{.CSRF}}"><button type="submit" class="s">Keluar</button></form>
-</header>{{end}}
+{{define "logo"}}<svg viewBox="0 0 32 32" aria-hidden="true"><polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill="#f0a500"/><polygon points="16,8 23,12 23,20 16,24 9,20 9,12" fill="none" stroke="#1c2b4a" stroke-width="2"/></svg>{{end}}
+
+{{define "nav"}}<header class="top"><div class="in">
+  <a class="brand" href="/panel">{{template "logo"}}Madu</a>
+  <nav class="menu" aria-label="Menu utama">
+    <a href="/panel" {{if eq .Title "Dashboard"}}class="on" aria-current="page"{{end}}>Dashboard</a>
+    <a href="/panel/log" {{if eq .Title "Log serangan"}}class="on" aria-current="page"{{end}}>Log serangan</a>
+    <a href="/panel/aturan" {{if eq .Title "Aturan jebakan"}}class="on" aria-current="page"{{end}}>Aturan</a>
+    <a href="/panel/blokir" {{if eq .Title "Blocklist"}}class="on" aria-current="page"{{end}}>Blokir</a>
+    {{if eq .Role "admin"}}<a href="/panel/audit" {{if eq .Title "Audit log"}}class="on" aria-current="page"{{end}}>Audit</a>{{end}}
+  </nav>
+  <div class="me">
+    <span>{{.Username}} <span class="chip">{{.Role}}</span></span>
+    <form method="post" action="/keluar"><input type="hidden" name="csrf" value="{{.CSRF}}"><button type="submit" class="s">Keluar</button></form>
+  </div>
+</div></header>{{end}}
+
+{{define "sev"}}<span class="chip s{{.}}">{{if eq . 3}}Tinggi{{else if eq . 2}}Sedang{{else}}Rendah{{end}}</span>{{end}}

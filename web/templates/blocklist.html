@@ -1,7 +1,7 @@
 {{template "head" .}}
-<body class="app">
-<main>
-  {{template "nav" .}}
+<body>
+{{template "nav" .}}
+<main class="wrap">
   <h1>Blocklist</h1>
   <p class="note">IP di daftar ini mendapat respons 403 pada jalur jebakan. Aplikasi asli tidak terpengaruh.</p>
   {{if .Error}}<p class="err" role="alert">{{.Error}}</p>{{end}}

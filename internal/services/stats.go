@@ -11,6 +11,7 @@ import (
 type Count struct {
 	Label string
 	N     int64
+	Pct   int
 }
 
 type Stats struct {
@@ -58,6 +59,21 @@ func GetStats(db *gorm.DB, withTest bool) Stats {
 	events(db, withTest).Select("ip AS label, COUNT(*) AS n").
 		Group("ip").Order("n DESC").Limit(5).Scan(&s.TopIPs)
 
+	setPct(s.ByType)
+	setPct(s.ByHour)
 	s.MaxType, s.MaxHour, s.MaxPath, s.MaxIP = maxOf(s.ByType), maxOf(s.ByHour), maxOf(s.TopPaths), maxOf(s.TopIPs)
 	return s
+}
+
+// setPct menghitung persentase tiap batang terhadap nilai terbesar (untuk lebar atau tinggi grafik).
+func setPct(c []Count) {
+	var m int64 = 1
+	for _, x := range c {
+		if x.N > m {
+			m = x.N
+		}
+	}
+	for i := range c {
+		c[i].Pct = int(c[i].N * 100 / m)
+	}
 }

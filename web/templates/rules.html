@@ -1,7 +1,7 @@
 {{template "head" .}}
-<body class="app">
-<main>
-  {{template "nav" .}}
+<body>
+{{template "nav" .}}
+<main class="wrap">
   <h1>Aturan jebakan</h1>
   {{if .Error}}<p class="err" role="alert">{{.Error}}</p>{{end}}
 
@@ -40,7 +40,7 @@
       <td>{{.Name}}</td>
       <td><code>{{.Pattern}}</code></td>
       <td>{{.AttackType}}</td>
-      <td>{{if eq .Severity 3}}Tinggi{{else if eq .Severity 2}}Sedang{{else}}Rendah{{end}}</td>
+      <td>{{template "sev" .Severity}}</td>
       <td>{{if .Active}}Ya{{else}}Tidak{{end}}</td>
       {{if eq $.Role "admin"}}
       <td class="act">

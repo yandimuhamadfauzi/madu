@@ -1,0 +1,44 @@
+{{template "head" .}}
+<body>
+{{template "nav" .}}
+<main class="wrap">
+  <h1>Pengguna</h1>
+  <p class="note">Akun yang mendaftar sendiri berstatus menunggu dan baru bisa masuk setelah kamu menyetujuinya.</p>
+  {{if .Error}}<p class="err" role="alert">{{.Error}}</p>{{end}}
+  <div class="tw">
+  <table>
+    <tr><th>Username</th><th>Peran</th><th>Status</th><th>Dibuat</th><th></th></tr>
+    {{range .Users}}
+    <tr>
+      <td>{{.Username}}{{if eq .ID $.MeID}} <span class="chip">akun Anda</span>{{end}}</td>
+      <td>{{.Role}}</td>
+      <td>{{if eq .Status "menunggu"}}<span class="chip s2">menunggu</span>{{else if eq .Status "nonaktif"}}<span class="chip s3">nonaktif</span>{{else}}<span class="chip">aktif</span>{{end}}</td>
+      <td>{{.CreatedAt.Format "02 Jan 2006 15:04"}}</td>
+      <td class="act">
+      {{if ne .ID $.MeID}}
+        <form method="post" action="/panel/pengguna/{{.ID}}/peran">
+          <input type="hidden" name="csrf" value="{{$.CSRF}}">
+          <select name="peran" aria-label="Peran {{.Username}}">
+            <option value="analis" {{if eq .Role "analis"}}selected{{end}}>analis</option>
+            <option value="admin" {{if eq .Role "admin"}}selected{{end}}>admin</option>
+          </select>
+          <button type="submit" class="s">Ubah peran</button>
+        </form>
+        {{if eq .Status "menunggu"}}
+          <form method="post" action="/panel/pengguna/{{.ID}}/setujui"><input type="hidden" name="csrf" value="{{$.CSRF}}"><button type="submit">Setujui</button></form>
+          <form method="post" action="/panel/pengguna/{{.ID}}/hapus"><input type="hidden" name="csrf" value="{{$.CSRF}}"><button type="submit" class="d">Tolak</button></form>
+        {{else if eq .Status "aktif"}}
+          <form method="post" action="/panel/pengguna/{{.ID}}/nonaktifkan"><input type="hidden" name="csrf" value="{{$.CSRF}}"><button type="submit" class="s">Nonaktifkan</button></form>
+        {{else}}
+          <form method="post" action="/panel/pengguna/{{.ID}}/aktifkan"><input type="hidden" name="csrf" value="{{$.CSRF}}"><button type="submit">Aktifkan</button></form>
+          <form method="post" action="/panel/pengguna/{{.ID}}/hapus"><input type="hidden" name="csrf" value="{{$.CSRF}}"><button type="submit" class="d">Hapus</button></form>
+        {{end}}
+      {{end}}
+      </td>
+    </tr>
+    {{end}}
+  </table>
+  </div>
+</main>
+</body>
+</html>

@@ -11,14 +11,17 @@
   <main class="card">
     <div class="logo">{{template "logo"}} Madu</div>
     <p class="sub">Honeypot dashboard</p>
+    {{if .Info}}<p class="info" role="status">{{.Info}}</p>{{end}}
     {{if .Error}}<p class="err" role="alert">{{.Error}}</p>{{end}}
     <form method="post" action="/masuk" autocomplete="off">
+      <input type="hidden" name="ft" value="{{.FT}}">
       <label for="u">Username</label>
       <input id="u" name="username" required maxlength="20">
       <label for="p">Password</label>
       <input id="p" name="password" type="password" required maxlength="72">
       <button type="submit">Masuk</button>
     </form>
+    <p class="alt">Belum punya akun? <a href="/daftar">Daftar</a></p>
   </main>
 </body>
 </html>

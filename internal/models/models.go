@@ -7,6 +7,7 @@ type User struct {
 	Username     string `gorm:"size:20;uniqueIndex;not null"`
 	PasswordHash string `gorm:"size:100;not null"`
 	Role         string `gorm:"size:10;not null"` // admin atau analis
+	Status       string `gorm:"size:10;not null;default:aktif;index"`
 	CreatedAt    time.Time
 }
 

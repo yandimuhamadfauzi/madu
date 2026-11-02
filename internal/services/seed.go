@@ -33,7 +33,7 @@ func ensureUser(db *gorm.DB, uEnv, pEnv, role string) {
 	if err != nil {
 		log.Fatal("gagal membuat hash: ", err)
 	}
-	if err := db.Create(&models.User{Username: u, PasswordHash: h, Role: role}).Error; err != nil {
+	if err := db.Create(&models.User{Username: u, PasswordHash: h, Role: role, Status: "aktif"}).Error; err != nil {
 		log.Fatal("gagal membuat user: ", err)
 	}
 	log.Println("user dibuat:", u, "peran:", role)

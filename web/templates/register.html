@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daftar - Madu</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="login">
+  <main class="card">
+    <div class="logo">{{template "logo"}} Madu</div>
+    <p class="sub">Buat akun baru</p>
+    {{if .Error}}<p class="err" role="alert">{{.Error}}</p>{{end}}
+    <form method="post" action="/daftar" autocomplete="off">
+      <input type="hidden" name="ft" value="{{.FT}}">
+      <label for="u">Username (3-20 huruf atau angka)</label>
+      <input id="u" name="username" required minlength="3" maxlength="20" pattern="[A-Za-z0-9]{3,20}">
+      <label for="p">Password (minimal 8 karakter, ada huruf besar, huruf kecil, dan angka)</label>
+      <input id="p" name="password" type="password" required minlength="8" maxlength="72">
+      <label for="p2">Ulangi password</label>
+      <input id="p2" name="password2" type="password" required minlength="8" maxlength="72">
+      <button type="submit">Daftar</button>
+    </form>
+    <p class="note">Akunmu perlu disetujui admin sebelum bisa dipakai.</p>
+    <p class="alt">Sudah punya akun? <a href="/masuk">Masuk</a></p>
+  </main>
+</body>
+</html>

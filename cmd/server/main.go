@@ -25,6 +25,14 @@ func main() {
 	if err != nil {
 		log.Fatal("gagal konek database: ", err)
 	}
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatal("gagal membaca koneksi database: ", err)
+	}
+	sqlDB.SetMaxOpenConns(10)
+	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetConnMaxLifetime(30 * time.Minute)
+
 	if err := db.AutoMigrate(&models.User{}, &models.Rule{}, &models.Event{}, &models.Session{}, &models.Blocklist{}, &models.AuditLog{}); err != nil {
 		log.Fatal("gagal migrasi: ", err)
 	}
@@ -59,6 +67,7 @@ func main() {
 		SecureCookie: os.Getenv("COOKIE_SECURE") != "false",
 		IPLimit:      services.NewFailLimiter(10, 15*time.Minute, 15*time.Minute),
 		UserLimit:    services.NewFailLimiter(5, 15*time.Minute, 15*time.Minute),
+		RegLimit:     services.NewFailLimiter(5, time.Hour, time.Hour),
 	}
 	hp := &handlers.Honeypot{DB: db, Limiter: services.NewFailLimiter(60, time.Minute, 10*time.Minute)}
 	dash := &handlers.Dashboard{DB: db}
@@ -66,6 +75,7 @@ func main() {
 	blocks := &handlers.Blocks{DB: db}
 	export := &handlers.Export{DB: db}
 	audit := &handlers.Audit{DB: db}
+	users := &handlers.Users{DB: db}
 
 	r.GET("/", func(c *gin.Context) { c.Redirect(http.StatusSeeOther, "/masuk") })
 	r.HEAD("/", func(c *gin.Context) { c.Status(http.StatusSeeOther) }) // HEAD yang sah tidak dianggap serangan
@@ -74,6 +84,9 @@ func main() {
 	r.GET("/masuk", auth.LoginPage)
 	r.HEAD("/masuk", func(c *gin.Context) { c.Status(http.StatusOK) })
 	r.POST("/masuk", middleware.AuditLogin(db), auth.Login)
+	r.GET("/daftar", auth.RegisterPage)
+	r.HEAD("/daftar", func(c *gin.Context) { c.Status(http.StatusOK) })
+	r.POST("/daftar", middleware.AuditRegister(db), auth.Register)
 
 	requireAuth := middleware.RequireAuth(db)
 	csrf := middleware.RequireCSRF()
@@ -95,6 +108,13 @@ func main() {
 	r.GET("/panel/blokir", requireAuth, blocks.List)
 	r.POST("/panel/blokir", requireAuth, middleware.Audit(db, "blokir.tambah"), admin, csrf, blocks.Add)
 	r.POST("/panel/blokir/:id/hapus", requireAuth, middleware.Audit(db, "blokir.hapus"), admin, csrf, blocks.Delete)
+
+	r.GET("/panel/pengguna", requireAuth, admin, users.List)
+	r.POST("/panel/pengguna/:id/setujui", requireAuth, middleware.Audit(db, "pengguna.setujui"), admin, csrf, users.Approve)
+	r.POST("/panel/pengguna/:id/nonaktifkan", requireAuth, middleware.Audit(db, "pengguna.nonaktifkan"), admin, csrf, users.Deactivate)
+	r.POST("/panel/pengguna/:id/aktifkan", requireAuth, middleware.Audit(db, "pengguna.aktifkan"), admin, csrf, users.Activate)
+	r.POST("/panel/pengguna/:id/peran", requireAuth, middleware.Audit(db, "pengguna.peran"), admin, csrf, users.SetRole)
+	r.POST("/panel/pengguna/:id/hapus", requireAuth, middleware.Audit(db, "pengguna.hapus"), admin, csrf, users.Delete)
 
 	r.NoRoute(hp.Handle) // semua jalur yang tidak ada di aplikasi asli = umpan
 

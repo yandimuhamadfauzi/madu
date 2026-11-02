@@ -18,7 +18,7 @@ func SecurityHeaders(hsts bool) gin.HandlerFunc {
 		if hsts {
 			h.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 		}
-		if strings.HasPrefix(c.Request.URL.Path, "/panel") || c.Request.URL.Path == "/masuk" {
+		if strings.HasPrefix(c.Request.URL.Path, "/panel") || c.Request.URL.Path == "/masuk" || c.Request.URL.Path == "/daftar" {
 			h.Set("Cache-Control", "no-store") // halaman panel tidak disimpan di cache browser
 		}
 		c.Next()

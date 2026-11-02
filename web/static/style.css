@@ -165,3 +165,6 @@ body.login{min-height:100vh;display:grid;place-items:center;padding:18px;backgro
 .w98{width:98%}.h98{height:98%}
 .w99{width:99%}.h99{height:99%}
 .w100{width:100%}.h100{height:100%}
+.info{background:var(--ins);color:var(--in);padding:10px 12px;border-radius:9px;margin:10px 0}
+.card .alt{text-align:center;margin:14px 0 0;font-size:14px}
+.act select{width:auto;margin:0 4px 0 0;padding:4px 8px}

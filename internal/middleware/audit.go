@@ -62,3 +62,23 @@ func AuditLogin(db *gorm.DB) gin.HandlerFunc {
 		write(db, c, u, action)
 	}
 }
+
+// AuditRegister mencatat percobaan pendaftaran. Username hanya dicatat bila formatnya valid.
+func AuditRegister(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		u := c.PostForm("username")
+		c.Next()
+		status := c.Writer.Status()
+		if status == http.StatusTooManyRequests {
+			return
+		}
+		if !actorRe.MatchString(u) {
+			u = "?"
+		}
+		action := "daftar.gagal"
+		if status == http.StatusSeeOther {
+			action = "daftar.berhasil"
+		}
+		write(db, c, u, action)
+	}
+}

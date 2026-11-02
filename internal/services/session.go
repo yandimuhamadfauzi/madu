@@ -57,6 +57,9 @@ func SessionFromToken(db *gorm.DB, token string) (*models.User, *models.Session,
 	if err := db.First(&u, s.UserID).Error; err != nil {
 		return nil, nil, err
 	}
+	if u.Status != "aktif" {
+		return nil, nil, gorm.ErrRecordNotFound
+	}
 	return &u, &s, nil
 }
 

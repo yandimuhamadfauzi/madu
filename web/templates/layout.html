@@ -17,7 +17,7 @@
     <a href="/panel/log" {{if eq .Title "Log serangan"}}class="on" aria-current="page"{{end}}>Log serangan</a>
     <a href="/panel/aturan" {{if eq .Title "Aturan jebakan"}}class="on" aria-current="page"{{end}}>Aturan</a>
     <a href="/panel/blokir" {{if eq .Title "Blocklist"}}class="on" aria-current="page"{{end}}>Blokir</a>
-    {{if eq .Role "admin"}}<a href="/panel/audit" {{if eq .Title "Audit log"}}class="on" aria-current="page"{{end}}>Audit</a>{{end}}
+    {{if eq .Role "admin"}}<a href="/panel/pengguna" {{if eq .Title "Pengguna"}}class="on" aria-current="page"{{end}}>Pengguna</a><a href="/panel/audit" {{if eq .Title "Audit log"}}class="on" aria-current="page"{{end}}>Audit</a>{{end}}
   </nav>
   <div class="me">
     <span>{{.Username}} <span class="chip">{{.Role}}</span></span>

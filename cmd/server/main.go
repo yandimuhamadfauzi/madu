@@ -59,6 +59,7 @@ func main() {
 	_ = r.SetTrustedProxies(nil)
 	r.Use(middleware.SanitizeClientIP(clientIPHeader))
 	r.Use(middleware.SecurityHeaders(os.Getenv("COOKIE_SECURE") != "false"))
+	r.Use(middleware.LimitBody(64 << 10))
 	r.LoadHTMLGlob("web/templates/*.html")
 	r.Static("/static", "./web/static")
 
@@ -69,7 +70,7 @@ func main() {
 		UserLimit:    services.NewFailLimiter(5, 15*time.Minute, 15*time.Minute),
 		RegLimit:     services.NewFailLimiter(5, time.Hour, time.Hour),
 	}
-	hp := &handlers.Honeypot{DB: db, Limiter: services.NewFailLimiter(60, time.Minute, 10*time.Minute)}
+	hp := &handlers.Honeypot{DB: db, Limiter: services.NewFailLimiter(60, time.Minute, 10*time.Minute), Global: services.NewFailLimiter(600, time.Minute, time.Minute)}
 	dash := &handlers.Dashboard{DB: db}
 	rules := &handlers.Rules{DB: db}
 	blocks := &handlers.Blocks{DB: db}
@@ -100,14 +101,14 @@ func main() {
 	r.GET("/panel/audit", requireAuth, admin, audit.List)
 
 	r.GET("/panel/aturan", requireAuth, rules.List)
-	r.POST("/panel/aturan", requireAuth, middleware.Audit(db, "aturan.tambah"), admin, csrf, rules.Create)
-	r.POST("/panel/aturan/:id", requireAuth, middleware.Audit(db, "aturan.ubah"), admin, csrf, rules.Update)
-	r.POST("/panel/aturan/:id/aktif", requireAuth, middleware.Audit(db, "aturan.aktif"), admin, csrf, rules.Toggle)
-	r.POST("/panel/aturan/:id/hapus", requireAuth, middleware.Audit(db, "aturan.hapus"), admin, csrf, rules.Delete)
+	r.POST("/panel/aturan", requireAuth, middleware.Audit(db, "aturan.tambah"), middleware.CacheBust(), admin, csrf, rules.Create)
+	r.POST("/panel/aturan/:id", requireAuth, middleware.Audit(db, "aturan.ubah"), middleware.CacheBust(), admin, csrf, rules.Update)
+	r.POST("/panel/aturan/:id/aktif", requireAuth, middleware.Audit(db, "aturan.aktif"), middleware.CacheBust(), admin, csrf, rules.Toggle)
+	r.POST("/panel/aturan/:id/hapus", requireAuth, middleware.Audit(db, "aturan.hapus"), middleware.CacheBust(), admin, csrf, rules.Delete)
 
 	r.GET("/panel/blokir", requireAuth, blocks.List)
-	r.POST("/panel/blokir", requireAuth, middleware.Audit(db, "blokir.tambah"), admin, csrf, blocks.Add)
-	r.POST("/panel/blokir/:id/hapus", requireAuth, middleware.Audit(db, "blokir.hapus"), admin, csrf, blocks.Delete)
+	r.POST("/panel/blokir", requireAuth, middleware.Audit(db, "blokir.tambah"), middleware.CacheBust(), admin, csrf, blocks.Add)
+	r.POST("/panel/blokir/:id/hapus", requireAuth, middleware.Audit(db, "blokir.hapus"), middleware.CacheBust(), admin, csrf, blocks.Delete)
 
 	r.GET("/panel/pengguna", requireAuth, admin, users.List)
 	r.POST("/panel/pengguna/:id/setujui", requireAuth, middleware.Audit(db, "pengguna.setujui"), admin, csrf, users.Approve)
@@ -118,5 +119,15 @@ func main() {
 
 	r.NoRoute(hp.Handle) // semua jalur yang tidak ada di aplikasi asli = umpan
 
-	log.Fatal(r.Run(":" + cfg.Port))
+	srv := &http.Server{
+		Addr:              ":" + cfg.Port,
+		Handler:           r,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
+		MaxHeaderBytes:    16 << 10,
+	}
+	log.Println("server berjalan di port " + cfg.Port)
+	log.Fatal(srv.ListenAndServe())
 }

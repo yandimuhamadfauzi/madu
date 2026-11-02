@@ -13,7 +13,7 @@ import (
 	"github.com/yandimuhamadfauzi/madu/internal/services"
 )
 
-var AttackTypes = []string{"Brute force", "Pencurian secret", "Pemindaian admin", "SQL Injection", "XSS", "Path traversal", "Kebocoran repo", "Tidak dikenal"}
+var AttackTypes = []string{"Brute force", "Pencurian secret", "Pemindaian admin", "SQL Injection", "XSS", "Path traversal", "Kebocoran repo", "Eksploitasi", "Pemindaian otomatis", "Tidak dikenal"}
 
 const perPage = 25
 

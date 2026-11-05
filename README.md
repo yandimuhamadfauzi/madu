@@ -146,3 +146,4 @@ Hasil lengkap, termasuk tangkapan layar sebelum dan sesudah perbaikan, ada di la
 
 Aplikasi hanya mencatat secara pasif dan tidak membalas atau menyerang balik. IP dapat dianggap data
 pribadi, sehingga data dibatasi masa simpannya dan hanya metadata yang dicatat.
+- **Filter Rentang Tanggal:** Pencarian log dan ekspor CSV kini mendukung penyaringan berdasarkan rentang tanggal spesifik untuk mempermudah analisis.

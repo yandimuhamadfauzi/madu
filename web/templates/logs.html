@@ -3,7 +3,8 @@
 {{template "nav" .}}
 <main class="wrap">
   <h1>Log serangan</h1>
-  <p class="note">{{.Total}} entri ditemukan. <a href="/panel/log.csv{{if .WithTest}}?uji=1{{end}}">Ekspor CSV</a></p>
+  <p class="note">{{.Total}} entri ditemukan{{if or .From .To}} untuk rentang {{if .From}}{{.From}}{{else}}awal{{end}} sampai {{if .To}}{{.To}}{{else}}sekarang{{end}}{{end}}. <a href="{{.CSVURL}}">Ekspor CSV</a></p>
+  {{if .Err}}<p class="err" role="alert">{{.Err}}</p>{{end}}
 
   <form method="get" action="/panel/log" class="box filter">
     <div><label for="q">Cari jalur, IP, atau user-agent</label><input id="q" name="q" maxlength="60" value="{{.Q}}"></div>
@@ -13,16 +14,24 @@
         {{range .Types}}<option value="{{.}}" {{if eq . $.Typ}}selected{{end}}>{{.}}</option>{{end}}
       </select>
     </div>
+    <div><label for="dari">Dari tanggal</label><input id="dari" name="dari" type="date" value="{{.From}}"></div>
+    <div><label for="sampai">Sampai tanggal</label><input id="sampai" name="sampai" type="date" value="{{.To}}"></div>
     <div><label class="chk"><input type="checkbox" name="uji" value="1" {{if .WithTest}}checked{{end}}> Tampilkan data uji</label></div>
     <div><button type="submit">Terapkan</button></div>
   </form>
+  <p class="presets">Rentang cepat:
+    <a href="{{.LinkToday}}">Hari ini</a>
+    <a href="{{.Link7}}">7 hari terakhir</a>
+    <a href="{{.Link30}}">30 hari terakhir</a>
+    {{if or .From .To}}<a href="{{.LinkAll}}">Semua tanggal</a>{{end}}
+  </p>
 
   <div class="tw">
   <table>
     <tr><th>Waktu</th><th>IP</th><th>Permintaan</th><th>Jenis</th><th>Tingkat</th></tr>
     {{range .Events}}
     <tr>
-      <td>{{.CreatedAt.Format "02 Jan 15:04:05"}}</td>
+      <td>{{.CreatedAt.Format "02 Jan 2006 15:04:05"}}</td>
       <td><code>{{.IP}}</code></td>
       <td><code>{{.Method}} {{.Path}}</code><br><small>{{.UserAgent}}</small></td>
       <td>{{.AttackType}}{{if .IsTest}} <span class="chip">uji</span>{{end}}{{if .Blocked}} <span class="chip s3">diblokir</span>{{end}}</td>

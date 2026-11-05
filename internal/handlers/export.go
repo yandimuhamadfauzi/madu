@@ -28,13 +28,11 @@ func yesNo(b bool) string {
 	return "tidak"
 }
 
+// CSV mengekspor log serangan dengan filter yang sama seperti halaman log (maksimal 5000 baris).
 func (e *Export) CSV(c *gin.Context) {
-	tx := e.DB.Model(&models.Event{})
-	if c.Query("uji") != "1" {
-		tx = tx.Where("is_test = ?", false)
-	}
+	f := parseFilter(c)
 	var evs []models.Event
-	tx.Order("id DESC").Limit(5000).Find(&evs)
+	f.apply(e.DB.Model(&models.Event{})).Order("id DESC").Limit(5000).Find(&evs)
 
 	c.Header("Content-Type", "text/csv; charset=utf-8")
 	c.Header("Content-Disposition", `attachment; filename="madu-serangan.csv"`)

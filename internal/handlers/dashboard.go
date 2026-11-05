@@ -2,9 +2,8 @@ package handlers
 
 import (
 	"net/http"
-	"net/url"
 	"strconv"
-	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -16,8 +15,6 @@ import (
 var AttackTypes = []string{"Brute force", "Pencurian secret", "Pemindaian admin", "SQL Injection", "XSS", "Path traversal", "Kebocoran repo", "Eksploitasi", "Pemindaian otomatis", "Tidak dikenal"}
 
 const perPage = 25
-
-var likeEsc = strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`)
 
 type Dashboard struct{ DB *gorm.DB }
 
@@ -32,24 +29,8 @@ func (d *Dashboard) Index(c *gin.Context) {
 
 func (d *Dashboard) Logs(c *gin.Context) {
 	u := c.MustGet("user").(*models.User)
-	withTest := c.Query("uji") == "1"
+	f := parseFilter(c)
 
-	// Semua parameter dari URL divalidasi sebelum dipakai.
-	typ := c.Query("jenis")
-	valid := false
-	for _, t := range AttackTypes {
-		if t == typ {
-			valid = true
-		}
-	}
-	if !valid {
-		typ = ""
-	}
-	q := []rune(strings.TrimSpace(c.Query("q")))
-	if len(q) > 60 {
-		q = q[:60]
-	}
-	search := string(q)
 	page, _ := strconv.Atoi(c.DefaultQuery("hal", "1"))
 	if page < 1 {
 		page = 1
@@ -58,49 +39,31 @@ func (d *Dashboard) Logs(c *gin.Context) {
 		page = 10000
 	}
 
-	tx := d.DB.Model(&models.Event{})
-	if !withTest {
-		tx = tx.Where("is_test = ?", false)
-	}
-	if typ != "" {
-		tx = tx.Where("attack_type = ?", typ)
-	}
-	if search != "" {
-		like := "%" + likeEsc.Replace(search) + "%"
-		tx = tx.Where("path LIKE ? OR ip LIKE ? OR user_agent LIKE ?", like, like, like)
-	}
-	tx = tx.Session(&gorm.Session{})
-
+	tx := f.apply(d.DB.Model(&models.Event{})).Session(&gorm.Session{})
 	var total int64
 	tx.Count(&total)
 	var events []models.Event
 	tx.Order("id DESC").Limit(perPage).Offset((page - 1) * perPage).Find(&events)
 
-	link := func(p int) string {
-		v := url.Values{}
-		v.Set("hal", strconv.Itoa(p))
-		if typ != "" {
-			v.Set("jenis", typ)
-		}
-		if search != "" {
-			v.Set("q", search)
-		}
-		if withTest {
-			v.Set("uji", "1")
-		}
-		return "/panel/log?" + v.Encode()
+	now := time.Now()
+	day := func(n int) string { return now.AddDate(0, 0, -n).Format("2006-01-02") }
+	rentang := func(n int) string {
+		return "/panel/log?" + f.query(map[string]string{"dari": day(n), "sampai": day(0)})
 	}
 
 	data := gin.H{
 		"Title": "Log serangan", "CSRF": c.GetString("csrf"), "Username": u.Username, "Role": u.Role,
-		"Events": events, "Total": total, "Types": AttackTypes,
-		"Typ": typ, "Q": search, "WithTest": withTest, "Page": page,
+		"Events": events, "Total": total, "Types": AttackTypes, "Page": page,
+		"Typ": f.Typ, "Q": f.Q, "WithTest": f.WithTest, "From": f.From, "To": f.To, "Err": f.Err,
+		"CSVURL":    "/panel/log.csv?" + f.query(nil),
+		"LinkToday": rentang(0), "Link7": rentang(6), "Link30": rentang(29),
+		"LinkAll": "/panel/log?" + f.query(nil, "dari", "sampai"),
 	}
 	if page > 1 {
-		data["Prev"] = link(page - 1)
+		data["Prev"] = "/panel/log?" + f.query(map[string]string{"hal": strconv.Itoa(page - 1)})
 	}
 	if int64(page*perPage) < total {
-		data["Next"] = link(page + 1)
+		data["Next"] = "/panel/log?" + f.query(map[string]string{"hal": strconv.Itoa(page + 1)})
 	}
 	c.HTML(http.StatusOK, "logs.html", data)
 }

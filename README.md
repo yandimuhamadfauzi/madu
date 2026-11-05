@@ -4,7 +4,7 @@ Aplikasi web berbasis honeypot yang menyediakan jalur jebakan (misalnya `/.env`,
 mencatat permintaan mencurigakan, mengklasifikasikannya, dan menampilkannya di dashboard.
 Dibuat oleh Yandi Muhamad Fauzi (Universitas Kuningan) untuk Tugas Project mata kuliah Cyber Security.
 
-- URL aplikasi: <ISI URL APLIKASI SETELAH DEPLOY>
+- URL aplikasi: <https://madu-s5cl.onrender.com>
 - Repository: https://github.com/yandimuhamadfauzi/madu
 - Akun uji untuk dosen dicantumkan di laporan PDF, bukan di repository ini.
 
@@ -24,6 +24,7 @@ menampilkan serangan tersebut agar polanya mudah dipahami.
 - Dashboard (ringkasan, grafik per jam, jenis serangan, jalur dan IP teratas) dan log serangan dengan filter.
 - Laporan: ekspor CSV.
 - Audit log aktivitas pengguna.
+- Pemantauan Uptime: Terintegrasi dengan UptimeRobot untuk melakukan ping ke rute /healthz setiap 5 menit agar server Render gratis tidak tertidur (spin-down).
 
 ## Teknologi
 
@@ -32,8 +33,9 @@ menampilkan serangan tersebut agar polanya mudah dipahami.
 | Bahasa dan framework | Go, Gin |
 | ORM dan database | GORM, MySQL |
 | Tampilan | `html/template`, CSS sendiri (tanpa CDN) |
-| Hosting | <ISI HOSTING APLIKASI> |
-| Database cloud | <ISI PENYEDIA DATABASE> |
+| Hosting | Render (Web Server Docker) |
+| Database cloud | MySQL 8.4 terkelola di Aiven |
+| Pemantauan Uptime | UptimeRobot |
 | Kontainer | Docker (lihat `Dockerfile`) |
 
 Struktur singkat:
@@ -146,4 +148,7 @@ Hasil lengkap, termasuk tangkapan layar sebelum dan sesudah perbaikan, ada di la
 
 Aplikasi hanya mencatat secara pasif dan tidak membalas atau menyerang balik. IP dapat dianggap data
 pribadi, sehingga data dibatasi masa simpannya dan hanya metadata yang dicatat.
-- **Filter Rentang Tanggal:** Pencarian log dan ekspor CSV kini mendukung penyaringan berdasarkan rentang tanggal spesifik untuk mempermudah analisis.
+
+## Filter Rentang Tanggal
+
+Pencarian log dan ekspor CSV kini mendukung penyaringan berdasarkan rentang tanggal spesifik untuk mempermudah analisis.

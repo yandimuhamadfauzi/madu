@@ -3,12 +3,34 @@
 {{template "nav" .}}
 <main class="wrap">
   <h1>Blocklist</h1>
-  <p class="note">IP di daftar ini mendapat respons 403 pada jalur jebakan. Aplikasi asli tidak terpengaruh.</p>
+  <p class="note">IP di daftar ini mendapat respons 403 pada jalur jebakan. Aplikasi asli tidak terpengaruh. IP yang melakukan banyak serangan berat diblokir otomatis untuk sementara.</p>
   {{if .Error}}<p class="err" role="alert">{{.Error}}</p>{{end}}
+
+  <section class="box">
+    <h2>Blokir otomatis</h2>
+    <p>Status:
+      {{if .AutoLocked}}<span class="chip s3">dimatikan lewat environment</span>
+      {{else if .AutoOn}}<span class="chip s2">aktif</span>
+      {{else}}<span class="chip">nonaktif</span>{{end}}
+    </p>
+    <p class="note">Aturan: {{.AutoThreshold}} serangan severity {{.AutoSeverity}}+ dalam {{.AutoWindowMin}} menit memblokir IP selama {{.AutoDurationMin}} menit. Bila dimatikan, tidak ada blokir baru, tetapi blokir yang sudah ada tetap berlaku sampai berakhir atau dilepas.</p>
+    {{if eq .Role "admin"}}
+    {{if not .AutoLocked}}
+    <form method="post" action="/panel/blokir/otomatis/{{if .AutoOn}}nonaktif{{else}}aktif{{end}}">
+      <input type="hidden" name="csrf" value="{{.CSRF}}">
+      <button type="submit"{{if .AutoOn}} class="d"{{end}}>{{if .AutoOn}}Matikan{{else}}Nyalakan{{end}} blokir otomatis</button>
+    </form>
+    {{end}}
+    <form method="post" action="/panel/blokir/otomatis/hapus">
+      <input type="hidden" name="csrf" value="{{.CSRF}}">
+      <button type="submit" class="d">Lepas semua blokir otomatis</button>
+    </form>
+    {{end}}
+  </section>
 
   {{if eq .Role "admin"}}
   <section class="box">
-    <h2>Tambah IP</h2>
+    <h2>Tambah IP (permanen)</h2>
     <form method="post" action="/panel/blokir" autocomplete="off">
       <input type="hidden" name="csrf" value="{{.CSRF}}">
       <label for="ip">Alamat IP</label>
@@ -24,17 +46,19 @@
 
   <div class="tw">
   <table>
-    <tr><th>IP</th><th>Alasan</th><th>Dibuat</th>{{if eq .Role "admin"}}<th></th>{{end}}</tr>
+    <tr><th>IP</th><th>Alasan</th><th>Jenis</th><th>Berakhir</th><th>Dibuat</th>{{if eq .Role "admin"}}<th></th>{{end}}</tr>
     {{range .Items}}
     <tr>
       <td><code>{{.IP}}</code></td>
       <td>{{.Reason}}</td>
+      <td>{{if .Auto}}<span class="chip s2">otomatis</span>{{else}}<span class="chip">manual</span>{{end}}</td>
+      <td>{{if .ExpiresAt}}{{.ExpiresAt.Format "02 Jan 15:04"}}{{else}}permanen{{end}}</td>
       <td>{{.CreatedAt.Format "02 Jan 2006 15:04"}}</td>
       {{if eq $.Role "admin"}}
       <td class="act"><form method="post" action="/panel/blokir/{{.ID}}/hapus"><input type="hidden" name="csrf" value="{{$.CSRF}}"><button type="submit" class="d">Hapus</button></form></td>
       {{end}}
     </tr>
-    {{else}}<tr><td colspan="4">Belum ada IP yang diblokir.</td></tr>{{end}}
+    {{else}}<tr><td colspan="6">Belum ada IP yang diblokir.</td></tr>{{end}}
   </table>
   </div>
 </main>

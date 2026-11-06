@@ -170,3 +170,25 @@ body.login{min-height:100vh;display:grid;place-items:center;padding:18px;backgro
 .act select{width:auto;margin:0 4px 0 0;padding:4px 8px}
 .presets{font-size:14px;color:var(--mu);margin:-4px 0 12px}
 .presets a{margin-right:14px}
+
+@media (max-width:720px){
+  .wrap{padding:0 14px 36px}
+  h1{font-size:21px;margin:16px 0 4px}
+  .top .in{padding:10px 14px;gap:8px}
+  .brand{order:1}
+  .me{order:2;margin-left:auto;gap:6px;font-size:12px}
+  .me button{padding:5px 10px;font-size:12px}
+  .menu{order:3;width:100%;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 2px;border-top:1px solid var(--ln);gap:4px}
+  .menu::-webkit-scrollbar{display:none}
+  .menu a{white-space:nowrap;flex-shrink:0;padding:6px 11px;font-size:13px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .stat{padding:12px}
+  .stat b{font-size:24px}
+  .cols{grid-template-columns:1fr}
+  .chart{gap:3px;height:140px}
+  .col small{font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .col:nth-child(even) small{visibility:hidden}
+  .filter>div{min-width:100%}
+  .filter button{width:100%}
+  th,td{padding:8px 10px;font-size:12px}
+}

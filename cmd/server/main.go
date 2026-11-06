@@ -33,7 +33,7 @@ func main() {
 	sqlDB.SetMaxIdleConns(5)
 	sqlDB.SetConnMaxLifetime(30 * time.Minute)
 
-	if err := db.AutoMigrate(&models.User{}, &models.Rule{}, &models.Event{}, &models.Session{}, &models.Blocklist{}, &models.AuditLog{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.Rule{}, &models.Event{}, &models.Session{}, &models.Blocklist{}, &models.AuditLog{}, &models.Setting{}); err != nil {
 		log.Fatal("gagal migrasi: ", err)
 	}
 	services.SeedUsers(db)
@@ -47,6 +47,7 @@ func main() {
 		for {
 			services.PurgeExpiredSessions(db)
 			services.PurgeOldEvents(db, retention)
+			services.PurgeExpiredBlocks(db)
 			time.Sleep(time.Hour)
 		}
 	}()
@@ -70,10 +71,13 @@ func main() {
 		UserLimit:    services.NewFailLimiter(5, 15*time.Minute, 15*time.Minute),
 		RegLimit:     services.NewFailLimiter(5, time.Hour, time.Hour),
 	}
-	hp := &handlers.Honeypot{DB: db, Limiter: services.NewFailLimiter(60, time.Minute, 10*time.Minute), Global: services.NewFailLimiter(600, time.Minute, time.Minute)}
+	autoBlocker := services.NewAutoBlocker(services.AutoBlockConfigFromEnv())
+	services.LoadAutoBlockSetting(db, autoBlocker)
+	log.Println("blokir otomatis aktif:", autoBlocker.Enabled())
+	hp := &handlers.Honeypot{DB: db, Limiter: services.NewFailLimiter(60, time.Minute, 10*time.Minute), Global: services.NewFailLimiter(600, time.Minute, time.Minute), AutoBlock: autoBlocker}
 	dash := &handlers.Dashboard{DB: db}
 	rules := &handlers.Rules{DB: db}
-	blocks := &handlers.Blocks{DB: db}
+	blocks := &handlers.Blocks{DB: db, Auto: autoBlocker}
 	export := &handlers.Export{DB: db}
 	audit := &handlers.Audit{DB: db}
 	users := &handlers.Users{DB: db}
@@ -109,6 +113,9 @@ func main() {
 	r.GET("/panel/blokir", requireAuth, blocks.List)
 	r.POST("/panel/blokir", requireAuth, middleware.Audit(db, "blokir.tambah"), middleware.CacheBust(), admin, csrf, blocks.Add)
 	r.POST("/panel/blokir/:id/hapus", requireAuth, middleware.Audit(db, "blokir.hapus"), middleware.CacheBust(), admin, csrf, blocks.Delete)
+	r.POST("/panel/blokir/otomatis/aktif", requireAuth, middleware.Audit(db, "autoblock.aktifkan"), admin, csrf, blocks.AutoOn)
+	r.POST("/panel/blokir/otomatis/nonaktif", requireAuth, middleware.Audit(db, "autoblock.nonaktifkan"), admin, csrf, blocks.AutoOff)
+	r.POST("/panel/blokir/otomatis/hapus", requireAuth, middleware.Audit(db, "autoblock.lepas-semua"), middleware.CacheBust(), admin, csrf, blocks.AutoFlush)
 
 	r.GET("/panel/pengguna", requireAuth, admin, users.List)
 	r.POST("/panel/pengguna/:id/setujui", requireAuth, middleware.Audit(db, "pengguna.setujui"), admin, csrf, users.Approve)

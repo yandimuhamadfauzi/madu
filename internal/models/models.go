@@ -44,10 +44,17 @@ type Session struct {
 }
 
 type Blocklist struct {
-	ID        uint   `gorm:"primaryKey"`
-	IP        string `gorm:"size:45;uniqueIndex;not null"`
-	Reason    string `gorm:"size:100"`
+	ID        uint       `gorm:"primaryKey"`
+	IP        string     `gorm:"size:45;uniqueIndex;not null"`
+	Reason    string     `gorm:"size:100"`
+	Auto      bool       `gorm:"not null;default:false"`
+	ExpiresAt *time.Time `gorm:"index"`
 	CreatedAt time.Time
+}
+
+type Pengaturan struct {
+	ID             uint `gorm:"primaryKey"`
+	AutoBlockAktif bool `gorm:"default:true"`
 }
 
 type AuditLog struct {
@@ -58,4 +65,10 @@ type AuditLog struct {
 	Detail    string    `gorm:"size:200"`
 	IP        string    `gorm:"size:45"`
 	Status    int
+}
+
+// Setting menyimpan pengaturan aplikasi yang bisa diubah admin dari web (mis. saklar blokir otomatis).
+type Setting struct {
+	Name  string `gorm:"primaryKey;size:50"`
+	Value string `gorm:"size:200"`
 }

@@ -39,7 +39,7 @@ func current(db *gorm.DB) *snapshot {
 	s := &snapshot{blocked: map[string]struct{}{}, at: time.Now()}
 	db.Where("active = ?", true).Order("id").Find(&s.rules)
 	var ips []string
-	db.Model(&models.Blocklist{}).Pluck("ip", &ips)
+	db.Model(&models.Blocklist{}).Where("expires_at IS NULL OR expires_at > ?", time.Now()).Pluck("ip", &ips)
 	for _, ip := range ips {
 		s.blocked[ip] = struct{}{}
 	}

@@ -4,23 +4,31 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
 	"github.com/yandimuhamadfauzi/madu/internal/models"
+	"github.com/yandimuhamadfauzi/madu/internal/services"
 )
 
-type Blocks struct{ DB *gorm.DB }
+type Blocks struct {
+	DB   *gorm.DB
+	Auto *services.AutoBlocker
+}
 
 func (b *Blocks) page(c *gin.Context, status int, msg string) {
 	u := c.MustGet("user").(*models.User)
 	var items []models.Blocklist
-	b.DB.Order("id DESC").Find(&items)
+	b.DB.Where("expires_at IS NULL OR expires_at > ?", time.Now()).Order("id DESC").Find(&items)
 	c.HTML(status, "blocklist.html", gin.H{
 		"Title": "Blocklist", "Username": u.Username, "Role": u.Role, "CSRF": c.GetString("csrf"),
 		"Items": items, "Error": msg,
+		"AutoOn": b.Auto.Enabled(), "AutoLocked": b.Auto.Locked(),
+		"AutoThreshold": b.Auto.Config().Threshold, "AutoSeverity": b.Auto.Config().MinSeverity,
+		"AutoWindowMin": int(b.Auto.Config().Window / time.Minute), "AutoDurationMin": int(b.Auto.Config().Duration / time.Minute),
 	})
 }
 
@@ -37,10 +45,28 @@ func (b *Blocks) Add(c *gin.Context) {
 		b.page(c, http.StatusBadRequest, "Alasan maksimal 100 karakter.")
 		return
 	}
-	var n int64
-	b.DB.Model(&models.Blocklist{}).Where("ip = ?", ip.String()).Count(&n)
-	if n > 0 {
-		b.page(c, http.StatusBadRequest, "IP sudah ada di daftar blokir.")
+
+	var rows []models.Blocklist
+	if err := b.DB.Where("ip = ?", ip.String()).Limit(1).Find(&rows).Error; err != nil {
+		c.String(http.StatusInternalServerError, "terjadi kesalahan")
+		return
+	}
+	if len(rows) > 0 {
+		cur := rows[0]
+		active := cur.ExpiresAt == nil || cur.ExpiresAt.After(time.Now())
+		if active && !cur.Auto {
+			b.page(c, http.StatusBadRequest, "IP sudah ada di daftar blokir.")
+			return
+		}
+		// Blokir otomatis (aktif atau sudah kedaluwarsa) dijadikan permanen oleh admin.
+		err := b.DB.Model(&models.Blocklist{}).Where("id = ?", cur.ID).Updates(map[string]any{
+			"reason": reason, "auto": false, "expires_at": nil, "created_at": time.Now(),
+		}).Error
+		if err != nil {
+			c.String(http.StatusInternalServerError, "terjadi kesalahan")
+			return
+		}
+		c.Redirect(http.StatusSeeOther, "/panel/blokir")
 		return
 	}
 	if err := b.DB.Create(&models.Blocklist{IP: ip.String(), Reason: reason}).Error; err != nil {

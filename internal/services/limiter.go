@@ -38,7 +38,8 @@ func (l *FailLimiter) Blocked(key string) time.Duration {
 	return 0
 }
 
-func (l *FailLimiter) Fail(key string) {
+// Fail mencatat satu kegagalan. Hasilnya true tepat saat ambang tercapai dan kunci mulai dikunci.
+func (l *FailLimiter) Fail(key string) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	now := time.Now()
@@ -52,7 +53,9 @@ func (l *FailLimiter) Fail(key string) {
 		e.lockedUntil = now.Add(l.lock)
 		e.fails = 0
 		e.windowStart = now
+		return true
 	}
+	return false
 }
 
 func (l *FailLimiter) Reset(key string) {

@@ -63,6 +63,7 @@ button.d{background:var(--dg);border-color:var(--dg);color:var(--bt)}
 
 .ab-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
 .ab-info p{margin:4px 0}
+.ab-right{display:flex;align-items:center;margin-left:auto}
 .ab-btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .ab-btns form{margin:0}
 .ab-btns button{margin:0}

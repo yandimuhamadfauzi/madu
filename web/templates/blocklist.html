@@ -3,41 +3,52 @@
 {{template "nav" .}}
 <main class="wrap">
   <h1>Blocklist</h1>
-  <p class="note">IP di daftar ini mendapat respons 403 pada jalur jebakan. Aplikasi asli tidak terpengaruh. IP yang melakukan banyak serangan berat diblokir otomatis untuk sementara.</p>
+  <p class="note">Daftar IP yang dicekal (mendapat respons 403) pada jalur jebakan.</p>
   {{if .Error}}<p class="err" role="alert">{{.Error}}</p>{{end}}
 
   <section class="box">
-    <h2>Blokir otomatis</h2>
-    <p>Status:
-      {{if .AutoLocked}}<span class="chip s3">dimatikan lewat environment</span>
-      {{else if .AutoOn}}<span class="chip s2">aktif</span>
-      {{else}}<span class="chip">nonaktif</span>{{end}}
-    </p>
-    <p class="note">Aturan: {{.AutoThreshold}} serangan severity {{.AutoSeverity}}+ dalam {{.AutoWindowMin}} menit memblokir IP selama {{.AutoDurationMin}} menit. Bila dimatikan, tidak ada blokir baru, tetapi blokir yang sudah ada tetap berlaku sampai berakhir atau dilepas.</p>
-    {{if eq .Role "admin"}}
-    {{if not .AutoLocked}}
-    <form method="post" action="/panel/blokir/otomatis/{{if .AutoOn}}nonaktif{{else}}aktif{{end}}">
-      <input type="hidden" name="csrf" value="{{.CSRF}}">
-      <button type="submit"{{if .AutoOn}} class="d"{{end}}>{{if .AutoOn}}Matikan{{else}}Nyalakan{{end}} blokir otomatis</button>
-    </form>
-    {{end}}
-    <form method="post" action="/panel/blokir/otomatis/hapus">
-      <input type="hidden" name="csrf" value="{{.CSRF}}">
-      <button type="submit" class="d">Lepas semua blokir otomatis</button>
-    </form>
-    {{end}}
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h2 style="margin-top: 0;">Blokir Otomatis</h2>
+        <p>Status:
+          {{if .AutoLocked}}<span class="chip s3">dikunci environment</span>
+          {{else if .AutoOn}}<span class="chip s2">aktif</span>
+          {{else}}<span class="chip">nonaktif</span>{{end}}
+        </p>
+        <p class="note" style="margin-bottom: 0;">Aturan: Cekal {{.AutoDurationMin}} menit jika terjadi {{.AutoThreshold}}x serangan dalam {{.AutoWindowMin}} menit.</p>
+      </div>
+
+      {{if eq .Role "admin"}}
+      <div style="display: flex; gap: 10px;">
+        {{if not .AutoLocked}}
+        <form method="post" action="/panel/blokir/otomatis/{{if .AutoOn}}nonaktif{{else}}aktif{{end}}" style="margin: 0;">
+          <input type="hidden" name="csrf" value="{{.CSRF}}">
+          <button type="submit"{{if .AutoOn}} class="d"{{end}}>{{if .AutoOn}}Matikan{{else}}Nyalakan{{end}}</button>
+        </form>
+        {{end}}
+        <form method="post" action="/panel/blokir/otomatis/hapus" style="margin: 0;">
+          <input type="hidden" name="csrf" value="{{.CSRF}}">
+          <button type="submit" class="d">Lepas Semua</button>
+        </form>
+      </div>
+      {{end}}
+    </div>
   </section>
 
   {{if eq .Role "admin"}}
   <section class="box">
     <h2>Tambah IP (permanen)</h2>
-    <form method="post" action="/panel/blokir" autocomplete="off">
+    <form method="post" action="/panel/blokir" autocomplete="off" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
       <input type="hidden" name="csrf" value="{{.CSRF}}">
-      <label for="ip">Alamat IP</label>
-      <input id="ip" name="ip" required maxlength="45">
-      <label for="alasan">Alasan (opsional)</label>
-      <input id="alasan" name="alasan" maxlength="100">
-      <button type="submit">Blokir</button>
+      <div style="flex: 1; min-width: 150px;">
+        <label for="ip" style="margin-bottom: 5px; display: block;">Alamat IP</label>
+        <input id="ip" name="ip" required maxlength="45" style="margin: 0; width: 100%; box-sizing: border-box;">
+      </div>
+      <div style="flex: 2; min-width: 200px;">
+        <label for="alasan" style="margin-bottom: 5px; display: block;">Alasan (opsional)</label>
+        <input id="alasan" name="alasan" maxlength="100" style="margin: 0; width: 100%; box-sizing: border-box;">
+      </div>
+      <button type="submit" style="margin: 0;">Blokir</button>
     </form>
   </section>
   {{else}}
@@ -55,7 +66,7 @@
       <td>{{if .ExpiresAt}}{{.ExpiresAt.Format "02 Jan 15:04"}}{{else}}permanen{{end}}</td>
       <td>{{.CreatedAt.Format "02 Jan 2006 15:04"}}</td>
       {{if eq $.Role "admin"}}
-      <td class="act"><form method="post" action="/panel/blokir/{{.ID}}/hapus"><input type="hidden" name="csrf" value="{{$.CSRF}}"><button type="submit" class="d">Hapus</button></form></td>
+      <td class="act"><form method="post" action="/panel/blokir/{{.ID}}/hapus" style="margin:0;"><input type="hidden" name="csrf" value="{{$.CSRF}}"><button type="submit" class="d">Hapus</button></form></td>
       {{end}}
     </tr>
     {{else}}<tr><td colspan="6">Belum ada IP yang diblokir.</td></tr>{{end}}

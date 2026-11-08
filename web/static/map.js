@@ -32,7 +32,16 @@ document.addEventListener("DOMContentLoaded", function() {
             .then(data => {
                 if(data.latitude && data.longitude) {
                     var marker = L.marker([data.latitude, data.longitude]).addTo(map);
-                    marker.bindPopup("<b>IP:</b> " + ip + "<br><b>Lokasi:</b> " + (data.city ? data.city + ", " : "") + data.country);
+                    
+                    // Deteksi ISP dari GeoJS (menggunakan organization_name atau organization)
+                    var isp = data.organization_name || data.organization || "Tidak diketahui";
+                    
+                    // Tambahkan ISP ke dalam tampilan popup
+                    marker.bindPopup(
+                        "<b>IP:</b> " + ip + 
+                        "<br><b>Lokasi:</b> " + (data.city ? data.city + ", " : "") + data.country + 
+                        "<br><b>ISP:</b> " + isp
+                    );
                 }
             })
             .catch(err => console.error("Gagal melacak lokasi IP: ", ip));

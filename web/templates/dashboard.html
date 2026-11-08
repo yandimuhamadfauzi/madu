@@ -55,7 +55,9 @@
     </div>
     <div class="box">
       <h2>IP paling aktif</h2>
-      {{range .S.TopIPs}}<div class="row"><code>{{.Label}}</code><strong>{{.N}}</strong></div>{{else}}<p class="note">Belum ada data.</p>{{end}}
+      <div style="max-height: 350px; overflow-y: auto; padding-right: 5px;">
+        {{range .S.TopIPs}}<div class="row"><code>{{.Label}}</code><strong>{{.N}}</strong></div>{{else}}<p class="note">Belum ada data.</p>{{end}}
+      </div>
     </div>
   </section>
 </main>

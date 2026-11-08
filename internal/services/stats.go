@@ -57,7 +57,7 @@ func GetStats(db *gorm.DB, withTest bool) Stats {
 		Group("label").Order("n DESC").Limit(50).Scan(&s.TopPaths)
 
 	events(db, withTest).Select("ip AS label, COUNT(*) AS n").
-		Group("ip").Order("n DESC").Limit(5).Scan(&s.TopIPs)
+		Group("ip").Order("n DESC").Limit(50).Scan(&s.TopIPs)
 
 	setPct(s.ByType)
 	setPct(s.ByHour)

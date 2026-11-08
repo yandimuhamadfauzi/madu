@@ -54,7 +54,7 @@ func GetStats(db *gorm.DB, withTest bool) Stats {
 
 	// CHAR(63) adalah tanda tanya; dipakai agar tidak dianggap placeholder oleh GORM.
 	events(db, withTest).Select("SUBSTRING_INDEX(path, CHAR(63), 1) AS label, COUNT(*) AS n").
-		Group("label").Order("n DESC").Limit(5).Scan(&s.TopPaths)
+		Group("label").Order("n DESC").Limit(50).Scan(&s.TopPaths)
 
 	events(db, withTest).Select("ip AS label, COUNT(*) AS n").
 		Group("ip").Order("n DESC").Limit(5).Scan(&s.TopIPs)

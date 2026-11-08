@@ -11,7 +11,7 @@ func SecurityHeaders(hsts bool) gin.HandlerFunc {
 		h := c.Writer.Header()
 		
 		// CSP SUPER AMAN: Mengizinkan domain Esri untuk memuat gambar peta
-		h.Set("Content-Security-Policy", "default-src 'none'; script-src 'self' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https://*.tile.openstreetmap.org https://server.arcgisonline.com; connect-src 'self' https://get.geojs.io; form-action 'self'; frame-ancestors 'none'; base-uri 'none'")
+		h.Set("Content-Security-Policy", "default-src 'none'; script-src 'self' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src 'self' data: https://*.tile.openstreetmap.org https://server.arcgisonline.com https://unpkg.com; connect-src 'self' https://get.geojs.io; form-action 'self'; frame-ancestors 'none'; base-uri 'none'")
 		
 		h.Set("X-Content-Type-Options", "nosniff")
 		h.Set("X-Frame-Options", "DENY")

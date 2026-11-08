@@ -32,6 +32,46 @@
     {{else}}<p class="note">Belum ada data.</p>{{end}}
   </section>
 
+  <!-- Peta GeoIP Interaktif -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <section class="box">
+    <h2>Peta Persebaran Penyerang (Top IP)</h2>
+    <div id="map" style="height: 350px; border-radius: 8px; z-index: 1;"></div>
+    <script>
+      // Inisialisasi peta dan atur zoom global
+      var map = L.map('map').setView([20, 0], 2);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 18,
+          attribution: '© OpenStreetMap'
+      }).addTo(map);
+
+      // Mengambil daftar IP teratas dari database Go
+      var ipList = [
+        {{range .S.TopIPs}}
+          "{{.Label}}",
+        {{end}}
+      ];
+
+      // Membersihkan IP kosong dan mencegah duplikasi marker
+      var uniqueIPs = [...new Set(ipList)].filter(ip => ip.trim() !== "");
+
+      // Mengambil data lokasi dari API GeoJS
+      uniqueIPs.forEach(function(ip) {
+          fetch('https://get.geojs.io/v1/ip/geo/' + ip + '.json')
+          .then(response => response.json())
+          .then(data => {
+              if(data.latitude && data.longitude) {
+                  var marker = L.marker([data.latitude, data.longitude]).addTo(map);
+                  marker.bindPopup("<b>IP:</b> " + ip + "<br><b>Lokasi:</b> " + (data.city ? data.city + ", " : "") + data.country);
+              }
+          })
+          .catch(err => console.error("Gagal melacak lokasi IP: ", ip));
+      });
+    </script>
+  </section>
+
   <section class="cols">
     <div class="box">
       <h2>Jalur paling sering</h2>

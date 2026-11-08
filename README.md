@@ -64,7 +64,7 @@ web/static/          CSS dan ikon
 | CSRF | Token per sesi untuk form setelah login, token double-submit cookie untuk form sebelum login |
 | Rate limiting | Login (per IP dan per username), pendaftaran, pencatatan jebakan (per IP dan global) |
 | Validasi dan sanitasi | Validasi di server (termasuk parameter URL dan tanggal), query berparameter (anti SQL injection), escape otomatis `html/template` (anti XSS), netralisasi formula injection di CSV |
-| Header keamanan | CSP ketat, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, HSTS (produksi), Cache-Control no-store untuk panel |
+| Header keamanan | CSP ketat, X-Frame-Optiazons, X-Content-Type-Options, Referrer-Policy, HSTS (produksi), Cache-Control no-store untuk panel |
 | Transport | HTTPS dengan sertifikat TLS otomatis; koneksi ke database memakai TLS dengan verifikasi sertifikat CA |
 | Secret | Environment variable, tidak ada di repository (dipindai dengan gitleaks) |
 | Data penyerang | Hanya metadata (waktu, IP, method, path+query, user-agent). Body request dan password yang dicoba tidak disimpan |
@@ -127,9 +127,9 @@ Prototipe berbasis Python (Pandas dan scikit-learn, algoritma Isolation Forest) 
 permintaan yang tidak biasa pada data log yang diekspor dari Madu. Ini deteksi anomali tanpa label,
 bukan klasifikasi jenis serangan, dan tidak terhubung ke aplikasi yang berjalan di produksi.
 
-- Lokasi kode: <ISI folder prototipe di repository, misalnya `ml/`; hapus bagian ini jika tidak dimasukkan ke repository>
-- Cara menjalankan: <ISI perintah singkat dan nama berkas data masukan>
-- Fitur yang dipakai dan hasil singkat: <ISI>
+- Lokasi kode: madu-ml
+- Cara menjalankan: Unduh data log CSV dari panel admin, ubah namanya menjadi madu-serangan.csv dan simpan di folder yang sama dengan skrip Python. Jalankan program dengan perintah python deteksi.py
+- Fitur yang dipakai dan hasil singkat: Model ini menganalisis fitur seperti panjang path, metode HTTP, tingkat keparahan (severity), dan frekuensi request per IP. Berdasarkan pengujian awal (contoh log nyata dari >200 entri), model mendeteksi anomali bot pemindai massal (seperti OpenBash-Surface dan l9scan/leakix) serta anomali akses pada berkas sensitif /.env dan /.git/config.
 - Keterbatasan: data nyata masih sedikit, sehingga hasilnya belum dapat digeneralisasi.
 
 ## Penggunaan AI agent

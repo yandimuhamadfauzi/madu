@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"html/template" // Tambahan untuk memproses HTML
 	"log"
 	"net/http"
 	"strings"
@@ -90,9 +91,48 @@ func (h *Honeypot) Handle(c *gin.Context) {
 		h.DB.Create(&ev)
 	}
 
+	// LOGIKA PENANGANAN RESPON BERDASARKAN STATUS
 	switch {
 	case blocked:
 		c.String(http.StatusForbidden, "Forbidden")
+		
+	// --- TAMBAHAN JEBAKAN LOGIN WORDPRESS ---
+	case c.Request.URL.Path == "/wp-login.php" || c.Request.URL.Path == "/wp-admin":
+		tmplPath := "web/templates/wp_login.html"
+		
+		// Jika bot mengirimkan form kredensial (POST)
+		if c.Request.Method == http.MethodPost {
+			username := clip(c.PostForm("log"), 100)
+			password := clip(c.PostForm("pwd"), 100)
+			
+			// Tampilkan di terminal / log (bisa dimodifikasi untuk simpan ke DB nanti)
+			log.Printf("🚨 [TRAP WP-LOGIN] IP: %s | Credential Captured -> User: '%s' | Pass: '%s'\n", ip, username, password)
+
+			tmpl, err := template.ParseFiles(tmplPath)
+			if err != nil {
+				c.String(http.StatusInternalServerError, "Server Error")
+				return
+			}
+			
+			c.Status(http.StatusForbidden) // Status ditolak agar bot tahu gagal
+			tmpl.Execute(c.Writer, map[string]interface{}{
+				"Error":    true,
+				"Username": username,
+			})
+			return
+		}
+
+		// Jika bot hanya mengakses halaman biasa (GET)
+		tmpl, err := template.ParseFiles(tmplPath)
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Server Error")
+			return
+		}
+		
+		c.Status(http.StatusOK)
+		tmpl.Execute(c.Writer, nil)
+	// ----------------------------------------
+
 	case rule != nil:
 		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte("<html><body></body></html>")) // umpan
 	default:

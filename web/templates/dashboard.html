@@ -16,13 +16,26 @@
     <div class="stat"><small>Dari IP terblokir</small><b>{{.S.Blocked}}</b></div>
   </section>
 
+  <!-- BAGIAN GRAFIK CHART.JS -->
   <section class="box">
     <h2>Serangan per jam (24 jam terakhir)</h2>
-    <div class="chart">
-      {{range .S.ByHour}}<div class="col"><div class="track"><span class="colbar h{{.Pct}}" title="{{.N}} serangan"></span></div><small>{{.Label}}</small></div>
-      {{else}}<p class="note">Belum ada data.</p>{{end}}
-    </div>
+    
+    {{if not .S.ByHour}}
+      <p class="note">Belum ada data.</p>
+    {{else}}
+      <div style="position: relative; height: 250px; width: 100%; padding-top: 10px;">
+        <canvas id="trendChart" 
+                data-labels='[{{range $i, $v := .S.ByHour}}{{if $i}},{{end}}"{{$v.Label}}"{{end}}]'
+                data-counts='[{{range $i, $v := .S.ByHour}}{{if $i}},{{end}}{{$v.N}}{{end}}]'></canvas>
+      </div>
+
+      <!-- Gunakan unpkg.com yang sudah diizinkan CSP -->
+      <script src="https://unpkg.com/chart.js@4.4.1/dist/chart.umd.js"></script>
+      <!-- Muat file JS statis -->
+      <script src="/static/chart.js"></script>
+    {{end}}
   </section>
+  <!-- AKHIR BAGIAN GRAFIK -->
 
   <section class="box">
     <h2>Jenis serangan</h2>
@@ -32,10 +45,8 @@
     {{else}}<p class="note">Belum ada data.</p>{{end}}
   </section>
 
-  <!-- Panggil library Leaflet eksternal -->
+  <!-- Panggil library Leaflet eksternal (Duplikat sudah dihapus) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>

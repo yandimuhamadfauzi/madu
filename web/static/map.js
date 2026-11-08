@@ -2,11 +2,18 @@ document.addEventListener("DOMContentLoaded", function() {
     var mapElement = document.getElementById('map');
     if (!mapElement) return;
 
-    var map = L.map('map').setView([20, 0], 2);
+    // Batasi area peta agar tidak bisa digeser jauh keluar dunia
+    var bounds = [[-90, -180], [90, 180]];
+
+    var map = L.map('map', {
+        minZoom: 2,             // Mencegah user terlalu zoom out
+        maxBounds: bounds,      // Mengunci area agar tidak keluar peta
+        maxBoundsViscosity: 1.0 // Kekuatan pantulan saat mencapai batas
+    }).setView([20, 0], 2);
     
-    // Menggunakan basemap Esri Dark Gray (Gratis, Tanpa API Key)
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
         maxZoom: 16,
+        noWrap: true,           // Mencegah peta berulang menyamping saat di-scroll
         attribution: 'Tiles © Esri — Esri, DeLorme, NAVTEQ'
     }).addTo(map);
 

@@ -32,49 +32,21 @@
     {{else}}<p class="note">Belum ada data.</p>{{end}}
   </section>
 
-  <!-- Peta GeoIP Interaktif -->
+  <!-- Panggil library Leaflet eksternal -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   
   <section class="box">
     <h2>Peta Persebaran Penyerang (Top IP)</h2>
-    <!-- Tambahkan min-height dan position relative -->
-    <div id="map" style="position: relative; min-height: 400px; width: 100%; border-radius: 8px; z-index: 10;"></div>
-    <script>
-      // Pastikan script berjalan setelah DOM dimuat
-      document.addEventListener("DOMContentLoaded", function() {
-          // Inisialisasi peta
-          var map = L.map('map').setView([20, 0], 2);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              maxZoom: 18,
-              attribution: '© OpenStreetMap'
-          }).addTo(map);
-
-          // Fix bug Leaflet rendering pada container dinamis
-          setTimeout(function(){ map.invalidateSize(); }, 500);
-
-          var ipList = [
-            {{range .S.TopIPs}}
-              "{{.Label}}",
-            {{end}}
-          ];
-
-          var uniqueIPs = [...new Set(ipList)].filter(ip => ip.trim() !== "");
-
-          uniqueIPs.forEach(function(ip) {
-              fetch('https://get.geojs.io/v1/ip/geo/' + ip + '.json')
-              .then(response => response.json())
-              .then(data => {
-                  if(data.latitude && data.longitude) {
-                      var marker = L.marker([data.latitude, data.longitude]).addTo(map);
-                      marker.bindPopup("<b>IP:</b> " + ip + "<br><b>Lokasi:</b> " + (data.city ? data.city + ", " : "") + data.country);
-                  }
-              })
-              .catch(err => console.error("Gagal melacak lokasi IP: ", ip));
-          });
-      });
-    </script>
+    <!-- Data IP dilempar secara aman melalui atribut data-ips -->
+    <div id="map" 
+         data-ips='[{{range $i, $v := .S.TopIPs}}{{if $i}},{{end}}"{{$v.Label}}"{{end}}]' 
+         style="position: relative; min-height: 400px; width: 100%; border-radius: 8px; z-index: 10;">
+    </div>
   </section>
+
+  <!-- Panggil file logika JS yang baru dibuat -->
+  <script src="/static/map.js"></script>
 
   <section class="cols">
     <div class="box">

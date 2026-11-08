@@ -51,7 +51,9 @@
   <section class="cols">
     <div class="box">
       <h2>Jalur paling sering</h2>
-      {{range .S.TopPaths}}<div class="row"><code>{{.Label}}</code><strong>{{.N}}</strong></div>{{else}}<p class="note">Belum ada data.</p>{{end}}
+        <div style="max-height: 350px; overflow-y: auto; padding-right: 5px;">
+          {{range .S.TopPaths}}<div class="row"><code>{{.Label}}</code><strong>{{.N}}</strong></div>{{else}}<p class="note">Belum ada data.</p>{{end}}
+          </div>
     </div>
     <div class="box">
       <h2>IP paling aktif</h2>

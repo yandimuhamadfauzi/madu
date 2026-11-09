@@ -117,6 +117,11 @@ func main() {
 	r.POST("/panel/blokir/otomatis/nonaktif", requireAuth, middleware.Audit(db, "autoblock.nonaktifkan"), admin, csrf, blocks.AutoOff)
 	r.POST("/panel/blokir/otomatis/hapus", requireAuth, middleware.Audit(db, "autoblock.lepas-semua"), middleware.CacheBust(), admin, csrf, blocks.AutoFlush)
 
+	
+	r.GET("/api/blocklist.txt", blocks.ExportTXT)
+
+	r.GET("/api/ip-info", requireAuth, admin, blocks.CheckIPAbuse)
+
 	r.GET("/panel/pengguna", requireAuth, admin, users.List)
 	r.POST("/panel/pengguna/:id/setujui", requireAuth, middleware.Audit(db, "pengguna.setujui"), admin, csrf, users.Approve)
 	r.POST("/panel/pengguna/:id/nonaktifkan", requireAuth, middleware.Audit(db, "pengguna.nonaktifkan"), admin, csrf, users.Deactivate)

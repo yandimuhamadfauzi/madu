@@ -32,7 +32,12 @@
     {{range .Events}}
     <tr>
       <td>{{.CreatedAt.Format "02 Jan 2006 15:04:05"}}</td>
-      <td><code>{{.IP}}</code></td>
+      <!-- Bagian IP diubah menjadi tautan yang memanggil fungsi JavaScript -->
+      <td>
+        <a href="#" class="btn-cek-ip" data-ip="{{.IP}}" style="color: inherit; text-decoration: underline;" title="Cek intelijen IP ini di AbuseIPDB">
+          <code>{{.IP}}</code>
+        </a>
+      </td>
       <td><code>{{.Method}} {{.Path}}</code><br><small>{{.UserAgent}}</small></td>
       <td>{{.AttackType}}{{if .IsTest}} <span class="chip">uji</span>{{end}}{{if .Blocked}} <span class="chip s3">diblokir</span>{{end}}</td>
       <td>{{template "sev" .Severity}}</td>
@@ -45,5 +50,8 @@
     {{if .Next}}<a href="{{.Next}}">Berikutnya &rarr;</a>{{end}}
   </p>
 </main>
+
+<script src="/static/script.js"></script>
+
 </body>
 </html>

@@ -86,4 +86,45 @@ func (b *Blocks) Delete(c *gin.Context) {
 	c.Redirect(http.StatusSeeOther, "/panel/blokir")
 }
 
+// ExportTXT menghasilkan daftar IP terblokir dalam format teks biasa untuk Firewall (Mikrotik/Cloudflare)
+func (b *Blocks) ExportTXT(c *gin.Context) {
+	var items []models.Blocklist
+	
+	// Ambil semua IP yang masih diblokir (baik permanen maupun otomatis yang belum expired)
+	if err := b.DB.Where("expires_at IS NULL OR expires_at > ?", time.Now()).Find(&items).Error; err != nil {
+		c.String(http.StatusInternalServerError, "Gagal mengambil data blocklist")
+		return
+	}
 
+	// Set header agar dibaca sebagai teks biasa
+	c.Header("Content-Type", "text/plain; charset=utf-8")
+	
+	// Tulis header informasi
+	c.String(http.StatusOK, "# Daftar DPO (Blocklist) Madu Honeypot\n")
+	c.String(http.StatusOK, "# Digenerate pada: %s\n", time.Now().Format(time.RFC3339))
+	c.String(http.StatusOK, "# Total IP: %d\n\n", len(items))
+
+	// Cetak setiap IP di baris baru
+	for _, item := range items {
+		c.String(http.StatusOK, "%s\n", item.IP)
+	}
+}
+
+// CheckIPAbuse merespons permintaan informasi reputasi IP dari frontend
+func (b *Blocks) CheckIPAbuse(c *gin.Context) {
+	ip := c.Query("ip")
+	if ip == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Parameter IP diperlukan"})
+		return
+	}
+
+	// Panggil service AbuseIPDB
+	info, err := services.CheckIPReputation(ip)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Kembalikan data intelijen ke frontend dalam format JSON
+	c.JSON(http.StatusOK, info.Data)
+}

@@ -1,12 +1,15 @@
 package handlers
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
 	"github.com/yandimuhamadfauzi/madu/internal/models"
+	"github.com/yandimuhamadfauzi/madu/internal/services"
 )
 
 type Users struct{ DB *gorm.DB }
@@ -59,10 +62,26 @@ func (h *Users) setStatus(c *gin.Context, from []string, to string) {
 		h.page(c, http.StatusBadRequest, "Status akun tidak sesuai untuk aksi ini.")
 		return
 	}
+	
 	h.DB.Model(u).Update("status", to)
+	
 	if to != "aktif" {
 		h.DB.Where("user_id = ?", u.ID).Delete(&models.Session{}) // cabut semua sesi aktifnya
+	} else {
+		// --- TRIGGER NOTIFIKASI KE USER (Jika statusnya diubah jadi aktif) ---
+		if u.Email != "" {
+			subject := "✅ Akun Madu Anda Telah Disetujui"
+			body := fmt.Sprintf("Halo %s,\n\nAkun Anda di sistem Madu Honeypot telah disetujui oleh Administrator.\n\nSekarang Anda dapat login melalui tautan berikut:\nhttps://madu.yandimfauzi.my.id/masuk\n\nTerima kasih.", u.Username)
+
+			go func() {
+				if err := services.SendEmail([]string{u.Email}, subject, body); err != nil {
+					log.Println("Gagal mengirim email notifikasi ke user:", err)
+				}
+			}()
+		}
+		// ---------------------------------------------------------------------
 	}
+	
 	c.Redirect(http.StatusSeeOther, "/panel/pengguna")
 }
 

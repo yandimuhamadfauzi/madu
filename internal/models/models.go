@@ -5,6 +5,7 @@ import "time"
 type User struct {
 	ID           uint   `gorm:"primaryKey"`
 	Username     string `gorm:"size:20;uniqueIndex;not null"`
+	Email        string `gorm:"type:varchar(100)"`
 	PasswordHash string `gorm:"size:100;not null"`
 	Role         string `gorm:"size:10;not null"` // admin atau analis
 	Status       string `gorm:"size:10;not null;default:aktif;index"`

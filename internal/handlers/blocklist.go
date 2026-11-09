@@ -85,3 +85,5 @@ func (b *Blocks) Delete(c *gin.Context) {
 	b.DB.Where("id = ?", id).Delete(&models.Blocklist{})
 	c.Redirect(http.StatusSeeOther, "/panel/blokir")
 }
+
+

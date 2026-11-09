@@ -1,7 +1,10 @@
 package handlers
 
 import (
+	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -133,11 +136,17 @@ func (a *Auth) Register(c *gin.Context) {
 	a.RegLimit.Fail(ip) // setiap percobaan dihitung, berhasil maupun gagal
 
 	username := c.PostForm("username")
+	email := c.PostForm("email") // Menangkap input email dari form
 	pw, pw2 := c.PostForm("password"), c.PostForm("password2")
 	bad := func(msg string) { a.renderRegister(c, http.StatusBadRequest, msg) }
 
 	if !usernameRe.MatchString(username) {
 		bad("Username harus 3-20 huruf atau angka.")
+		return
+	}
+	// Validasi email sederhana
+	if email == "" || !strings.Contains(email, "@") {
+		bad("Email tidak valid atau kosong.")
 		return
 	}
 	if pw != pw2 {
@@ -165,6 +174,13 @@ func (a *Auth) Register(c *gin.Context) {
 		bad("Username sudah dipakai.")
 		return
 	}
+	// Periksa email duplikat
+	var nEmail int64
+	a.DB.Model(&models.User{}).Where("email = ?", email).Count(&nEmail)
+	if nEmail > 0 {
+		bad("Email sudah terdaftar.")
+		return
+	}
 
 	h, err := services.HashPassword(pw)
 	if err != nil {
@@ -172,10 +188,26 @@ func (a *Auth) Register(c *gin.Context) {
 		return
 	}
 	// Akun baru: peran analis (hak paling kecil) dan menunggu persetujuan admin.
-	if err := a.DB.Create(&models.User{Username: username, PasswordHash: h, Role: "analis", Status: "menunggu"}).Error; err != nil {
+	newUser := models.User{Username: username, Email: email, PasswordHash: h, Role: "analis", Status: "menunggu"}
+	if err := a.DB.Create(&newUser).Error; err != nil {
 		bad("Username sudah dipakai.")
 		return
 	}
+
+	// --- TRIGGER NOTIFIKASI KE ADMIN ---
+	adminEmail := os.Getenv("ADMIN_EMAIL")
+	if adminEmail != "" {
+		subject := "🚨 Pendaftaran User Baru - Madu Honeypot"
+		body := fmt.Sprintf("Halo Admin,\n\nAda pengguna baru yang mendaftar dan menunggu persetujuan Anda.\n\nUsername: %s\nEmail: %s\nRole: %s\n\nSilakan login ke dashboard (https://madu.yandimfauzi.my.id/panel) untuk menyetujui.", newUser.Username, newUser.Email, newUser.Role)
+
+		go func() {
+			if err := services.SendEmail([]string{adminEmail}, subject, body); err != nil {
+				log.Println("Gagal mengirim email notifikasi ke admin:", err)
+			}
+		}()
+	}
+	// -----------------------------------
+
 	c.Redirect(http.StatusSeeOther, "/masuk?info=daftar")
 }
 
